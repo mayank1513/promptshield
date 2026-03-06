@@ -278,18 +278,9 @@ export type Detector = (
 ) => ThreatReport[];
 
 /**
- * Performance metrics for a scan.
- */
-export interface ScanStats {
-  durationMs: number;
-  totalChars: number;
-}
-
-/**
  * Result returned by the scanner.
  */
 export interface ScanResult {
   threats: ThreatReport[];
-  stats: ScanStats;
   isClean: boolean;
 }

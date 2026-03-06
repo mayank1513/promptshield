@@ -1,4 +1,3 @@
-import { performance } from "node:perf_hooks";
 import { scanHomoglyphs } from "./homoglyph";
 import { scanInjectionPatterns } from "./injection-patterns";
 import { scanInvisibleChars } from "./invisible";
@@ -50,7 +49,6 @@ export const scan = (
   options: ScanOptions = {},
   context: ScanContext = {},
 ): ScanResult => {
-  const start = performance.now();
   const threats: ThreatReport[] = [];
 
   const detectors: Detector[] = [];
@@ -71,14 +69,8 @@ export const scan = (
     }
   }
 
-  const end = performance.now();
-
   return {
     threats,
-    stats: {
-      durationMs: end - start,
-      totalChars: text.length,
-    },
     isClean: threats.length === 0,
   };
 };
