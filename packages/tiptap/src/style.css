@@ -1,0 +1,105 @@
+/* Styling for PromptShield Threats in TipTap Editor */
+.promptshield-threat {
+  position: relative;
+  text-decoration: underline wavy var(--ps-threat-color, #e00);
+  background-color: var(--ps-threat-bg, rgba(238, 0, 0, 0.1));
+}
+
+.promptshield-threat.ps-severity-critical {
+  --ps-threat-color: #d32f2f;
+  --ps-threat-bg: rgba(211, 47, 47, 0.15);
+}
+
+.promptshield-threat.ps-severity-high {
+  --ps-threat-color: #f57c00;
+  --ps-threat-bg: rgba(245, 124, 0, 0.15);
+}
+
+.promptshield-threat.ps-severity-medium {
+  --ps-threat-color: #fbc02d;
+  --ps-threat-bg: rgba(251, 192, 45, 0.15);
+}
+
+.promptshield-threat.ps-severity-low {
+  --ps-threat-color: #1976d2;
+  --ps-threat-bg: rgba(25, 118, 210, 0.15);
+}
+
+/* Tooltip container styling */
+.ps-tooltip-container {
+  font-family: system-ui, -apple-system, sans-serif;
+  background-color: #1e1e1e;
+  border: 1px solid #333;
+  color: #fff;
+  padding: 12px;
+  border-radius: 6px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  font-size: 13px;
+  max-width: 300px;
+  pointer-events: auto;
+  z-index: 1000;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.ps-tooltip-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid #333;
+  padding-bottom: 6px;
+}
+
+.ps-tooltip-title {
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.ps-tooltip-category {
+  font-size: 11px;
+  background: #333;
+  padding: 2px 6px;
+  border-radius: 4px;
+  color: #bbb;
+}
+
+.ps-tooltip-message {
+  line-height: 1.4;
+  color: #e0e0e0;
+}
+
+.ps-tooltip-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-top: 4px;
+}
+
+.ps-tooltip-button {
+  background: #007acc;
+  color: white;
+  border: none;
+  padding: 6px 10px;
+  border-radius: 4px;
+  cursor: pointer;
+  text-align: left;
+  font-size: 12px;
+  transition: background 0.2s ease;
+}
+
+.ps-tooltip-button:hover {
+  background: #005999;
+}
+
+.ps-tooltip-button-secondary {
+  background: transparent;
+  color: #bbb;
+}
+
+.ps-tooltip-button-secondary:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: #fff;
+}

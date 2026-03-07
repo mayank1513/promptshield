@@ -4,11 +4,20 @@ import {
   Eye,
   Filter,
   Layers,
+  ShieldCheck,
   Stethoscope,
   Terminal,
 } from "lucide-react";
 
 const packages = [
+  {
+    name: "@promptshield/tiptap",
+    role: "The AI Interface Shield",
+    description:
+      "Real-time threat detection and sanitization natively inside your tiptap editor.",
+    icon: <ShieldCheck className="w-6 h-6 text-red-500" />,
+    link: "https://www.npmjs.com/package/@promptshield/tiptap",
+  },
   {
     name: "mayank1513.promptshield",
     role: "The Lens",
