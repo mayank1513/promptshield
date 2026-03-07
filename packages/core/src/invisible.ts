@@ -1,10 +1,4 @@
-import {
-  type ScanContext,
-  type ScanOptions,
-  ThreatCategory,
-  type ThreatReport,
-} from "./types";
-import { getLineOffsets, getLocForIndex } from "./utils";
+import { type ScanOptions, ThreatCategory, type ThreatReport } from "./types";
 
 /**
  * Registry of invisible characters with readable labels.
@@ -63,7 +57,6 @@ const EXCESSIVE_THRESHOLD = 16;
 export const scanInvisibleChars = (
   text: string,
   options: ScanOptions = {},
-  context: ScanContext = {},
 ): ThreatReport[] => {
   // Clone regex instance to avoid shared lastIndex mutation
   const invisibleRegex = new RegExp(INVISIBLE_REGEX);
@@ -72,7 +65,6 @@ export const scanInvisibleChars = (
   if (!match || options?.minSeverity === "CRITICAL") return [];
 
   const threats: ThreatReport[] = [];
-  context.lineOffsets = context.lineOffsets ?? getLineOffsets(text);
 
   let spanStart = -1;
   let spanEnd = -1;
@@ -99,8 +91,6 @@ export const scanInvisibleChars = (
       return CHAR_LABELS[c] || `U+${cp?.toString(16).toUpperCase()}`;
     });
 
-    const loc = getLocForIndex(spanStart, context);
-
     /**
      * PSU004 — Unicode tag payload
      */
@@ -113,7 +103,7 @@ export const scanInvisibleChars = (
           "Unicode tag characters encode hidden ASCII content inside invisible text.",
         referenceUrl:
           "https://promptshield.js.org/docs/detectors/invisible-chars#PSU004",
-        loc,
+        range: { start: spanStart, end: spanEnd },
         offendingText,
         decodedPayload,
         readableLabel: "[TAG_PAYLOAD]",
@@ -140,7 +130,7 @@ export const scanInvisibleChars = (
           "Excessive invisible characters detected. Large invisible sequences are commonly used for padding or obfuscation.",
         referenceUrl:
           "https://promptshield.js.org/docs/detectors/invisible-chars#PSU005",
-        loc,
+        range: { start: spanStart, end: spanEnd },
         offendingText,
         readableLabel: `[${labels.join(" ")}]`,
         suggestion: "Remove unnecessary invisible characters.",
@@ -164,7 +154,7 @@ export const scanInvisibleChars = (
         "Invisible Unicode characters detected. These characters can alter tokenization and prompt interpretation without being visible.",
       referenceUrl:
         "https://promptshield.js.org/docs/detectors/invisible-chars#PSU001",
-      loc,
+      range: { start: spanStart, end: spanEnd },
       offendingText,
       readableLabel: `[${labels.join(" ")}]`,
       suggestion:
@@ -194,7 +184,7 @@ export const scanInvisibleChars = (
             "Invisible character detected inside a visible token. This can manipulate token boundaries or bypass validation.",
           referenceUrl:
             "https://promptshield.js.org/docs/detectors/invisible-chars#PSU002",
-          loc: getLocForIndex(index, context),
+          range: { start: index, end: index + char.length },
           offendingText: char,
           readableLabel: `[${CHAR_LABELS[char]}]` || "[INVISIBLE]",
           suggestion: "Remove invisible characters embedded within words.",

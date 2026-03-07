@@ -1,10 +1,4 @@
-import {
-  type ScanContext,
-  type ScanOptions,
-  ThreatCategory,
-  type ThreatReport,
-} from "./types";
-import { getLineOffsets, getLocForIndex } from "./utils";
+import { type ScanOptions, ThreatCategory, type ThreatReport } from "./types";
 
 /**
  * Unicode normalization detector.
@@ -40,7 +34,6 @@ import { getLineOffsets, getLocForIndex } from "./utils";
 export const scanNormalization = (
   text: string,
   options: ScanOptions = {},
-  context: ScanContext = {},
 ): ThreatReport[] => {
   if (options.minSeverity === "CRITICAL") return [];
 
@@ -48,8 +41,6 @@ export const scanNormalization = (
 
   const normalized = text.normalize("NFKC");
   if (text === normalized) return [];
-
-  context.lineOffsets = context.lineOffsets ?? getLineOffsets(text);
 
   let index = 0;
   let spanStart = -1;
@@ -69,7 +60,7 @@ export const scanNormalization = (
         "Text changes under Unicode NFKC normalization. This may cause ambiguity between displayed and interpreted content.",
       referenceUrl:
         "https://promptshield.js.org/docs/detectors/normalization#PSN001",
-      loc: getLocForIndex(spanStart, context),
+      range: { start: spanStart, end: spanEnd },
       offendingText,
       decodedPayload: normalizedSpan,
       readableLabel: "[NFKC_DIFF]",

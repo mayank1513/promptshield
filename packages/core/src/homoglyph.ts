@@ -1,10 +1,4 @@
-import {
-  type ScanContext,
-  type ScanOptions,
-  ThreatCategory,
-  type ThreatReport,
-} from "./types";
-import { getLineOffsets, getLocForIndex } from "./utils";
+import { type ScanOptions, ThreatCategory, type ThreatReport } from "./types";
 
 /**
  * Unicode script detectors.
@@ -61,7 +55,6 @@ const WORD_REGEX = /[\p{L}\p{N}_]+/gu;
 export const scanHomoglyphs = (
   text: string,
   options: ScanOptions = {},
-  context: ScanContext = {},
 ): ThreatReport[] => {
   // Clone regex to avoid shared lastIndex mutation during concurrent scans
   const regex = new RegExp(WORD_REGEX);
@@ -70,7 +63,6 @@ export const scanHomoglyphs = (
   if (!match) return [];
 
   const threats: ThreatReport[] = [];
-  context.lineOffsets = context.lineOffsets ?? getLineOffsets(text);
 
   while (match !== null) {
     const word = match[0];
@@ -101,7 +93,7 @@ export const scanHomoglyphs = (
         )})`,
         referenceUrl:
           "https://promptshield.js.org/docs/detectors/homoglyph#PSH001",
-        loc: getLocForIndex(index, context),
+        range: { start: index, end: index + word.length },
         offendingText: word,
         readableLabel: `[Mixed-Script] ${word}`,
         suggestion:

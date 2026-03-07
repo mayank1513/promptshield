@@ -1,11 +1,5 @@
 /** biome-ignore-all lint/suspicious/noAssignInExpressions: iterating over regex matches */
-import {
-  type ScanContext,
-  type ScanOptions,
-  ThreatCategory,
-  type ThreatReport,
-} from "./types";
-import { getLineOffsets, getLocForIndex } from "./utils";
+import { type ScanOptions, ThreatCategory, type ThreatReport } from "./types";
 
 /**
  * Regex for Base64-like payloads.
@@ -86,14 +80,11 @@ const decodeBase64IfLikely = (value: string): string | null => {
 export const scanSmuggling = (
   text: string,
   options: ScanOptions = {},
-  context: ScanContext = {},
 ): ThreatReport[] => {
   if (options.minSeverity === "CRITICAL") return [];
 
   const threats: ThreatReport[] = [];
   let match: RegExpExecArray | null;
-
-  context.lineOffsets = context.lineOffsets ?? getLineOffsets(text);
 
   /**
    * --------------------------------------------------
@@ -145,7 +136,7 @@ export const scanSmuggling = (
           severity: "HIGH",
           message:
             "Detected hidden steganography message encoded in invisible characters.",
-          loc: getLocForIndex(match.index, context),
+          range: { start: match.index, end: match.index + captured.length },
           offendingText: captured,
           decodedPayload: decoded,
           readableLabel: `[Hidden]: ${decoded.slice(0, 50)}...`,
@@ -182,7 +173,7 @@ export const scanSmuggling = (
       category: ThreatCategory.Smuggling,
       severity: "MEDIUM",
       message: "Detected Base64 payload containing readable content.",
-      loc: getLocForIndex(match.index, context),
+      range: { start: match.index, end: match.index + candidate.length },
       offendingText: candidate,
       decodedPayload: decoded,
       readableLabel: `[Base64]: ${decoded.slice(0, 50)}...`,
@@ -209,7 +200,7 @@ export const scanSmuggling = (
       category: ThreatCategory.Smuggling,
       severity: "LOW",
       message: "Detected hidden Markdown comment.",
-      loc: getLocForIndex(match.index, context),
+      range: { start: match.index, end: match.index + match[0].length },
       offendingText: match[0],
       readableLabel: "[Hidden Comment]",
       suggestion:
@@ -234,7 +225,7 @@ export const scanSmuggling = (
       category: ThreatCategory.Smuggling,
       severity: "LOW",
       message: "Detected empty Markdown link (invisible in rendered output).",
-      loc: getLocForIndex(match.index, context),
+      range: { start: match.index, end: match.index + match[0].length },
       offendingText: match[0],
       readableLabel: "[Empty Link]",
       suggestion: "Empty links can be used to hide URLs or data.",

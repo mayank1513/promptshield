@@ -1,10 +1,4 @@
-import {
-  type ScanContext,
-  type ScanOptions,
-  ThreatCategory,
-  type ThreatReport,
-} from "./types";
-import { getLineOffsets, getLocForIndex } from "./utils";
+import { type ScanOptions, ThreatCategory, type ThreatReport } from "./types";
 
 /**
  * Deterministic prompt-injection pattern detector.
@@ -100,11 +94,8 @@ const normalizeLine = (line: string): string => {
 export const scanInjectionPatterns = (
   text: string,
   options: ScanOptions = {},
-  context: ScanContext = {},
 ): ThreatReport[] => {
   const threats: ThreatReport[] = [];
-
-  context.lineOffsets = context.lineOffsets ?? getLineOffsets(text);
 
   const lines = text.split("\n");
   let runningIndex = 0;
@@ -125,7 +116,10 @@ export const scanInjectionPatterns = (
           severity: rule.severity,
           message: rule.message,
           offendingText: directMatch[0],
-          loc: getLocForIndex(runningIndex + directMatch.index, context),
+          range: {
+            start: runningIndex + directMatch.index,
+            end: runningIndex + directMatch.index + directMatch[0].length,
+          },
           readableLabel: "[Injection]",
           suggestion:
             "Remove instruction-override language from prompts or user content.",
@@ -140,13 +134,17 @@ export const scanInjectionPatterns = (
        * Normalized detection (spacing obfuscation)
        */
       if (normalized.includes(rule.normalizedPattern)) {
+        const offendingText = line.trim();
         threats.push({
           ruleId: rule.id,
           category: ThreatCategory.Injection,
           severity: rule.severity,
           message: `${rule.message} (obfuscated spacing detected)`,
-          offendingText: line.trim(),
-          loc: getLocForIndex(runningIndex, context),
+          offendingText,
+          range: {
+            start: runningIndex,
+            end: runningIndex + offendingText.length,
+          },
           readableLabel: "[Injection]",
           suggestion:
             "Obfuscated instruction detected. Inspect and remove malicious content.",

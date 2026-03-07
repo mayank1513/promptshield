@@ -92,7 +92,7 @@ export enum ThreatCategory {
  * The scanner reports both human-readable and machine-friendly
  * position data.
  */
-export interface ThreatLoc {
+export interface Location {
   /** 1-based line number */
   line: number;
 
@@ -134,7 +134,12 @@ export interface ThreatReport {
   message: string;
 
   /** Location of the threat start */
-  loc: ThreatLoc;
+  range: {
+    /** Offset: 0-based character index */
+    start: number;
+    /** Offset: 0-based character index */
+    end: number;
+  };
 
   /**
    * The substring responsible for the detection.
@@ -180,6 +185,56 @@ export interface ThreatReport {
    * by an ignore directive.
    */
   suppressed?: boolean;
+}
+
+/**
+ * Threat report enriched with human-readable location information.
+ *
+ * `ThreatReportWithLocation` extends the base `ThreatReport` by replacing the
+ * offset-based `range` with resolved line/column locations. This format is
+ * intended for environments where diagnostics must be presented to humans,
+ * such as:
+ *
+ * - CLI output
+ * - CI reports
+ * - logs
+ * - editor diagnostics
+ *
+ * The core scanner operates purely on absolute character offsets for
+ * performance and interoperability with editor APIs (e.g., Tiptap, LSP).
+ * Location resolution is performed later using utilities such as
+ * `enrichWithLoc`.
+ *
+ * Each range endpoint includes:
+ *
+ * - `line`   — 1-based line number
+ * - `column` — 1-based column number
+ * - `index`  — original 0-based character offset
+ *
+ * Keeping the original `index` ensures deterministic mapping back to the
+ * source text while still providing user-friendly diagnostics.
+ *
+ * @example
+ * ```ts
+ * {
+ *   ruleId: "PSU001",
+ *   severity: "LOW",
+ *   message: "Invisible Unicode characters detected.",
+ *   range: {
+ *     start: { line: 2, column: 5, index: 17 },
+ *     end:   { line: 2, column: 6, index: 18 }
+ *   }
+ * }
+ * ```
+ */
+export interface ThreatReportWithRange extends Omit<ThreatReport, "range"> {
+  range: {
+    /** Start position of the detected threat span. */
+    start: Location;
+
+    /** End position of the detected threat span. */
+    end: Location;
+  };
 }
 
 /**
@@ -260,7 +315,7 @@ export interface ScanContext {
   /**
    * Precomputed line offsets for performance.
    */
-  lineOffsets?: number[];
+  lineOffsets: number[];
 }
 
 /**
@@ -271,11 +326,7 @@ export interface ScanContext {
  * - side-effect free
  * - synchronous
  */
-export type Detector = (
-  text: string,
-  options: ScanOptions,
-  context: ScanContext,
-) => ThreatReport[];
+export type Detector = (text: string, options: ScanOptions) => ThreatReport[];
 
 /**
  * Result returned by the scanner.

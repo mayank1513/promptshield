@@ -1,10 +1,4 @@
-import {
-  type ScanContext,
-  type ScanOptions,
-  ThreatCategory,
-  type ThreatReport,
-} from "./types";
-import { getLineOffsets, getLocForIndex } from "./utils";
+import { type ScanOptions, ThreatCategory, type ThreatReport } from "./types";
 
 /**
  * BIDI control characters used in Trojan Source attacks.
@@ -34,10 +28,8 @@ const BIDI_CHARS: Record<string, "PUSH" | "POP"> = {
 export const scanTrojanSource = (
   text: string,
   options: ScanOptions = {},
-  context: ScanContext = {},
 ): ThreatReport[] => {
   const threats: ThreatReport[] = [];
-  context.lineOffsets = context.lineOffsets ?? getLineOffsets(text);
 
   const lines = text.split("\n");
   let globalIndex = 0;
@@ -66,7 +58,7 @@ export const scanTrojanSource = (
             "Bidirectional override characters detected (Trojan Source). These characters can visually reorder text and mislead readers.",
           referenceUrl:
             "https://promptshield.js.org/docs/detectors/trojan-source#PST001",
-          loc: getLocForIndex(pushIndex, context),
+          range: { start: pushIndex, end: endIndex },
           offendingText,
           decodedPayload,
           readableLabel: "[BIDI_OVERRIDE]",
@@ -100,7 +92,7 @@ export const scanTrojanSource = (
           "Unterminated bidirectional override sequence detected (Trojan Source). This may cause visual and logical text order to differ.",
         referenceUrl:
           "https://promptshield.js.org/docs/detectors/trojan-source#PST002",
-        loc: getLocForIndex(pushIndex, context),
+        range: { start: pushIndex, end: lineEndIndex },
         offendingText,
         decodedPayload,
         readableLabel: "[BIDI_UNTERMINATED]",

@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { scan } from "./index";
 import { ThreatCategory } from "./types";
+import { enrichWithRange } from "./utils";
 
 describe("PromptShield Core Engine", () => {
   describe("Invisible Character Detection", () => {
@@ -15,7 +16,7 @@ describe("PromptShield Core Engine", () => {
       expect(zwspThreat).toBeDefined();
       expect(zwspThreat?.category).toBe(ThreatCategory.Invisible);
       expect(zwspThreat?.readableLabel).toBe("[ZWSP]");
-      expect(zwspThreat?.loc.index).toBe(5);
+      expect(zwspThreat?.range.start).toBe(5);
     });
 
     it("should detect BIDI overrides as Trojan Source", () => {
@@ -33,9 +34,10 @@ describe("PromptShield Core Engine", () => {
     it("should identify correct line and column", () => {
       const input = "Line 1\nLine 2\u200B";
       const result = scan(input);
-      expect(result.threats).toHaveLength(1);
-      expect(result.threats[0].loc.line).toBe(2);
-      expect(result.threats[0].loc.column).toBe(7);
+      const threats = enrichWithRange(result.threats, input);
+      expect(threats).toHaveLength(1);
+      expect(threats[0].range.start.line).toBe(2);
+      expect(threats[0].range.start.column).toBe(7);
     });
     it("should stop on first threat for invisible characters", () => {
       const input = "\u200B \u200C"; // ZWSP, ZWNJ (distinct spans due to space)
