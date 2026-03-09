@@ -103,7 +103,10 @@ export const sanitize = (text: string): string => {
       .replace(EMPTY_LINK_REGEX, "");
   } while (currentText !== prevText);
 
-  return currentText.replace(COMPATIBILITY_NORMALIZE_REGEX, normalizeSegment);
+  return currentText
+    .replace(COMPATIBILITY_NORMALIZE_REGEX, normalizeSegment)
+    .replace("<!--", "")
+    .replace("-->", "");
 };
 
 /**
