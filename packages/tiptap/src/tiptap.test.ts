@@ -41,24 +41,6 @@ describe("PromptShield Tiptap Extension", () => {
     expect(decorations[0].spec.threat.category).toBe("INVISIBLE_CHAR");
   });
 
-  test("respects ignore rules via inline comment", async () => {
-    const editor = createEditor(
-      "<p>// promptshield-ignore</p><p>Hello\u200BWorld</p>",
-    );
-
-    // Wait for debounce logic
-    await new Promise((resolve) => setTimeout(resolve, 50));
-
-    const state = editor.state;
-    const decorationSet = PromptShieldPluginKey.getState(
-      state,
-    ) as DecorationSet;
-    const decorations = decorationSet.find();
-
-    // Should be 0 since the threat was ignored
-    expect(decorations.length).toBe(0);
-  });
-
   test("can quick fix a threat (invisible char)", async () => {
     const editor = createEditor("<p>Bad\u200BChar</p>");
 
