@@ -19,7 +19,7 @@
   <img alt="license" src="https://img.shields.io/npm/l/@promptshield/tiptap" />
 </p>
 
-> @promptshield/tiptap: Protect Tiptap editors from Prompt Injection and Trojan Source attacks in real-time.
+> **@promptshield/tiptap**: Official Tiptap extension for PromptShield. Protect your editor from Prompt Injection and Trojan Source attacks in real-time.
 
 ---
 

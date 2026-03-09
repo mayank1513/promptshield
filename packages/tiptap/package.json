@@ -3,7 +3,7 @@
   "author": "Mayank Kumar Chaudhari <https://mayankchaudhari.com>",
   "private": false,
   "version": "0.0.1",
-  "description": "",
+  "description": "Official Tiptap extension for PromptShield - Protect your editor from Prompt Injection and Trojan Source attacks in real-time.",
   "license": "MIT",
   "main": "./dist/index.js",
   "module": "./dist/index.mjs",
@@ -58,7 +58,8 @@
     "aliases": [
       "@ghostbuster/tiptap"
     ],
-    "icon": "Shield"
+    "icon": "Shield",
+    "description": "Real-time Tiptap editor security."
   },
   "funding": [
     {
@@ -72,6 +73,11 @@
   ],
   "keywords": [
     "@promptshield/tiptap",
+    "tiptap-extension",
+    "prompt-injection",
+    "security",
+    "trojan-source",
+    "real-time-protection",
     "turbo-forge"
   ]
 }

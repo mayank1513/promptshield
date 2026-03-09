@@ -20,7 +20,7 @@
     "sync": "forge-sync",
     "test": "vitest run --coverage",
     "typecheck": "turbo typecheck",
-    "docs:api": "tsx ./tooling/scripts/generate-api-docs.ts"
+    "docs": "tsx ./tooling/scripts/generate-api-docs.ts"
   },
   "devDependencies": {
     "@biomejs/biome": "2.4.4",
