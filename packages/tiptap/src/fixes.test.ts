@@ -1,3 +1,4 @@
+/** biome-ignore-all lint/suspicious/noExplicitAny: test file */
 import { ThreatCategory } from "@promptshield/core";
 import { Editor } from "@tiptap/core";
 import Document from "@tiptap/extension-document";

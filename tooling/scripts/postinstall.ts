@@ -2,7 +2,6 @@ import { execSync } from "node:child_process";
 import { existsSync, readdirSync, readFileSync, writeFileSync } from "node:fs";
 import path from "node:path";
 import commitlintConfig from "../../.commitlintrc.json";
-import pkgJson from "../../package.json";
 
 const getEntries = (dir: string) =>
   existsSync(dir)
@@ -59,6 +58,9 @@ try {
 
   // Update biome schema
   const biomeFilePath = path.join(process.cwd(), "biome.json");
+  const pkgJson = JSON.parse(
+    readFileSync(path.join(process.cwd(), "package.json"), "utf-8"),
+  );
   const biomeConfig = readFileSync(biomeFilePath, "utf-8").replace(
     /schemas\/.*\/schema\.json/,
     `schemas/${pkgJson.devDependencies["@biomejs/biome"]}/schema.json`,
