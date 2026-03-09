@@ -29,7 +29,6 @@ export const PromptShieldPlugin = (
       storage.threats = threats;
       storage.threatCount = threats.length;
     }
-    // @ts-expect-error
     editor.emit("promptShield:updated", { threats });
 
     // 4. Create decorations

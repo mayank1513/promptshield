@@ -21,8 +21,9 @@ const createEditor = (content: string) => {
     content,
   });
   // Mock storage
-  editor.storage["promptshield"] = {
+  editor.storage.promptshield = {
     threats: [],
+    threatCount: 0,
   };
   return editor;
 };
@@ -99,8 +100,12 @@ describe("Tiptap Fixes", () => {
   describe("applyAllFixesToEditor", () => {
     test("applies multiple fixes in reverse order", () => {
       const editor = createEditor("<p>A\u200BB\u200BC</p>");
-      editor.storage["promptshield"].threats = [
+      editor.storage.promptshield.threats = [
         {
+          ruleId: "PSU001",
+          severity: "LOW",
+          message: "Invisible char",
+          referenceUrl: "https://example.com",
           category: ThreatCategory.Invisible,
           range: {
             start: { index: 1, line: 1, column: 2 },
@@ -109,6 +114,10 @@ describe("Tiptap Fixes", () => {
           offendingText: "\u200B",
         },
         {
+          ruleId: "PSU001",
+          severity: "LOW",
+          message: "Invisible char",
+          referenceUrl: "https://example.com",
           category: ThreatCategory.Invisible,
           range: {
             start: { index: 3, line: 1, column: 4 },
@@ -125,7 +134,7 @@ describe("Tiptap Fixes", () => {
 
     test("handles no threats", () => {
       const editor = createEditor("<p>Clean</p>");
-      editor.storage["promptshield"].threats = [];
+      editor.storage.promptshield.threats = [];
       const applied = applyAllFixesToEditor(editor);
       expect(applied).toBe(false);
     });
