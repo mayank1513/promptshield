@@ -1,8 +1,8 @@
 {
   "title": "@promptshield/workspace",
   "description": "Workspace scan/fix orchestrator",
-  "lastModified": "2026-02-28T13:25:24.138Z",
-  "version": "1.0.0",
+  "lastModified": "2026-03-09T14:55:03.201Z",
+  "version": "1.0.2",
   "root": true,
   "icon": "Shield"
 }

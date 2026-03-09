@@ -1,8 +1,8 @@
 {
   "title": "@promptshield/cli",
   "description": "CI/CD tool for prompt security",
-  "lastModified": "2026-02-28T13:24:57.238Z",
-  "version": "0.1.1",
+  "lastModified": "2026-03-09T14:54:39.086Z",
+  "version": "1.0.0",
   "root": true,
   "icon": "Shield"
 }

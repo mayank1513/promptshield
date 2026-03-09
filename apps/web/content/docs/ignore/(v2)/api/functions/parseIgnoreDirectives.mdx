@@ -1,0 +1,42 @@
+[**@promptshield/ignore**](../index.md)
+
+***
+
+[@promptshield/ignore](../index.md) / parseIgnoreDirectives
+
+# Function: parseIgnoreDirectives()
+
+> **parseIgnoreDirectives**(`text`): [`IgnoreParseResult`](../interfaces/IgnoreParseResult.md)
+
+Defined in: [ignore.ts:82](https://github.com/promptshield-io/promptshield/blob/main/packages/ignore/src/ignore.ts#L82)
+
+INTERNAL
+
+Parses `promptshield-ignore` directives from raw text.
+
+Supported forms:
+
+- `promptshield-ignore all`
+  → Must appear near top of file (first 10 lines).
+
+- `promptshield-ignore next N`
+  → Ignores the next N lines (default 1).
+
+- `promptshield-ignore`
+  → Ignores current line (if inline) or next line (if standalone comment).
+
+Design Notes:
+- Parsing is lightweight and line-based.
+- Character offsets (`definedAt`) are computed using
+  accumulated line offsets for accurate diagnostics.
+- Line numbers are 1-based.
+
+## Parameters
+
+### text
+
+`string`
+
+## Returns
+
+[`IgnoreParseResult`](../interfaces/IgnoreParseResult.md)

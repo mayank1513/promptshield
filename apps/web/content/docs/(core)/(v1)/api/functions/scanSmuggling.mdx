@@ -1,0 +1,44 @@
+[**@promptshield/core**](../index.md)
+
+***
+
+[@promptshield/core](../index.md) / scanSmuggling
+
+# Function: scanSmuggling()
+
+> **scanSmuggling**(`text`, `options?`): [`ThreatReportWithoutLocation`](../interfaces/ThreatReportWithoutLocation.md)[]
+
+Defined in: [smuggling.ts:186](https://github.com/promptshield-io/promptshield/blob/main/packages/core/src/smuggling.ts#L186)
+
+Smuggling detector.
+
+Detects techniques used to conceal instructions or payloads
+inside otherwise harmless-looking text.
+
+Rules emitted:
+
+PSS001 — Invisible-character steganography (HIGH)
+PSS002 — Base64 payload with readable content (MEDIUM)
+PSS006 — Hex-encoded payload with readable content (MEDIUM)
+PSS003 — Hidden Markdown comment (LOW)
+PSS004 — Invisible Markdown link (LOW)
+PSS005 — Hidden HTML container (LOW)
+
+Span semantics:
+
+offendingText = suspicious region
+decodedPayload = recovered payload when available
+
+## Parameters
+
+### text
+
+`string`
+
+### options?
+
+[`ScanOptions`](../interfaces/ScanOptions.md) = `{}`
+
+## Returns
+
+[`ThreatReportWithoutLocation`](../interfaces/ThreatReportWithoutLocation.md)[]

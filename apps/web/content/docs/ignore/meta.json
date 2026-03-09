@@ -1,8 +1,8 @@
 {
   "title": "@promptshield/ignore",
   "description": "Hierarchical ignore rules engine",
-  "lastModified": "2026-02-28T13:25:08.244Z",
-  "version": "1.0.0",
+  "lastModified": "2026-03-09T14:54:47.222Z",
+  "version": "2.0.0",
   "root": true,
   "icon": "Shield"
 }

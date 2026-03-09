@@ -1,0 +1,66 @@
+[**@promptshield/core**](../index.md)
+
+***
+
+[@promptshield/core](../index.md) / scanNormalization
+
+# Function: scanNormalization()
+
+> **scanNormalization**(`text`, `options?`): [`ThreatReportWithoutLocation`](../interfaces/ThreatReportWithoutLocation.md)[]
+
+Defined in: [normalization.ts:49](https://github.com/promptshield-io/promptshield/blob/main/packages/core/src/normalization.ts#L49)
+
+Unicode normalization detector.
+
+Detects characters whose representation changes under **NFKC normalization**.
+
+Unicode normalization may transform visually similar or compatibility
+characters into canonical equivalents. When displayed text differs from
+its normalized form, this can introduce ambiguity between what users see
+and what downstream systems interpret.
+
+Such situations may indicate:
+
+- compatibility glyph usage
+- spoofing attempts
+- homoglyph confusion
+- prompt smuggling techniques
+- validation bypass in downstream processing pipelines
+
+Detection model:
+
+1. Normalize the text using **NFKC**
+2. Iterate over characters in the original text
+3. Identify characters whose normalized form differs
+4. Group adjacent normalization-sensitive characters into spans
+5. Emit one threat per span
+
+Severity heuristic:
+
+- **PSN001 (LOW)**
+  Compatibility normalization producing simple ASCII text.
+
+- **PSN002 (MEDIUM)**
+  More complex normalization transformations.
+
+Span semantics:
+
+offendingText = original span
+decodedPayload = normalized span
+
+Normalization can expand characters (example: `ﬀ → ff`), therefore
+the normalized payload is computed from the entire span.
+
+## Parameters
+
+### text
+
+`string`
+
+### options?
+
+[`ScanOptions`](../interfaces/ScanOptions.md) = `{}`
+
+## Returns
+
+[`ThreatReportWithoutLocation`](../interfaces/ThreatReportWithoutLocation.md)[]

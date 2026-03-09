@@ -77,6 +77,13 @@ jobs:
           VSCE_PAT: ${{ secrets.VSCE_PAT }}
           OVSX_PAT: ${{ secrets.OVSX_PAT }}
 
+      - name: Publish Aliases
+        if: steps.changesets.outputs.published == 'true'
+        continue-on-error: true
+        run: pnpm tsx tooling/scripts/publish-aliases.ts --published-packages '${{ steps.changesets.outputs.publishedPackages }}'
+        env:
+          NPM_TOKEN: ${{ secrets.NPM_AUTH_TOKEN }}
+
       - name: Generate API docs
         if: steps.changesets.outputs.published == 'true'
         run: |
@@ -95,9 +102,3 @@ jobs:
           else
             echo "No documentation changes to commit"
           fi
-
-      - name: Publish Aliases
-        if: steps.changesets.outputs.published == 'true'
-        run: pnpm tsx tooling/scripts/publish-aliases.ts --published-packages '${{ steps.changesets.outputs.publishedPackages }}'
-        env:
-          NPM_TOKEN: ${{ secrets.NPM_AUTH_TOKEN }}

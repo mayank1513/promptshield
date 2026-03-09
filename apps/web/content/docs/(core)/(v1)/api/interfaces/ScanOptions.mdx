@@ -1,0 +1,157 @@
+[**@promptshield/core**](../index.md)
+
+***
+
+[@promptshield/core](../index.md) / ScanOptions
+
+# Interface: ScanOptions
+
+Defined in: [types.ts:250](https://github.com/promptshield-io/promptshield/blob/main/packages/core/src/types.ts#L250)
+
+Scanner configuration options.
+
+## Properties
+
+### disableHomoglyphs?
+
+> `optional` **disableHomoglyphs**: `boolean`
+
+Defined in: [types.ts:277](https://github.com/promptshield-io/promptshield/blob/main/packages/core/src/types.ts#L277)
+
+Disable homoglyph detection
+
+#### Default
+
+```ts
+false
+```
+
+***
+
+### disableInjectionPatterns?
+
+> `optional` **disableInjectionPatterns**: `boolean`
+
+Defined in: [types.ts:301](https://github.com/promptshield-io/promptshield/blob/main/packages/core/src/types.ts#L301)
+
+Disable injection-pattern detection
+
+#### Default
+
+```ts
+false
+```
+
+***
+
+### disableInvisible?
+
+> `optional` **disableInvisible**: `boolean`
+
+Defined in: [types.ts:271](https://github.com/promptshield-io/promptshield/blob/main/packages/core/src/types.ts#L271)
+
+Disable invisible-character detection
+
+#### Default
+
+```ts
+false
+```
+
+***
+
+### disableNormalization?
+
+> `optional` **disableNormalization**: `boolean`
+
+Defined in: [types.ts:295](https://github.com/promptshield-io/promptshield/blob/main/packages/core/src/types.ts#L295)
+
+Disable normalization detection
+
+#### Default
+
+```ts
+false
+```
+
+***
+
+### disableSmuggling?
+
+> `optional` **disableSmuggling**: `boolean`
+
+Defined in: [types.ts:283](https://github.com/promptshield-io/promptshield/blob/main/packages/core/src/types.ts#L283)
+
+Disable smuggling detection
+
+#### Default
+
+```ts
+false
+```
+
+***
+
+### disableTrojan?
+
+> `optional` **disableTrojan**: `boolean`
+
+Defined in: [types.ts:289](https://github.com/promptshield-io/promptshield/blob/main/packages/core/src/types.ts#L289)
+
+Disable Trojan Source detection
+
+#### Default
+
+```ts
+false
+```
+
+***
+
+### ignoreChecker?
+
+> `optional` **ignoreChecker**: [`IgnoreChecker`](../type-aliases/IgnoreChecker.md)
+
+Defined in: [types.ts:308](https://github.com/promptshield-io/promptshield/blob/main/packages/core/src/types.ts#L308)
+
+Ignore checker function.
+
+#### Default
+
+```ts
+() => false
+```
+
+***
+
+### minSeverity?
+
+> `optional` **minSeverity**: [`Severity`](../type-aliases/Severity.md)
+
+Defined in: [types.ts:265](https://github.com/promptshield-io/promptshield/blob/main/packages/core/src/types.ts#L265)
+
+Minimum severity to report.
+
+#### Default
+
+```ts
+"LOW"
+```
+
+***
+
+### stopOnFirstThreat?
+
+> `optional` **stopOnFirstThreat**: `boolean`
+
+Defined in: [types.ts:258](https://github.com/promptshield-io/promptshield/blob/main/packages/core/src/types.ts#L258)
+
+Stop scanning after the first detected threat.
+
+Useful for CI validation or fast-fail scenarios.
+
+#### Default
+
+```ts
+false
+```

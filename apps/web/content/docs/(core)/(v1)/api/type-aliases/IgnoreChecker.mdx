@@ -1,0 +1,35 @@
+[**@promptshield/core**](../index.md)
+
+***
+
+[@promptshield/core](../index.md) / IgnoreChecker
+
+# Type Alias: IgnoreChecker()
+
+> **IgnoreChecker** = (`start`, `end`) => `boolean`
+
+Defined in: [types.ts:245](https://github.com/promptshield-io/promptshield/blob/main/packages/core/src/types.ts#L245)
+
+Predicate used by the scanner to determine whether a detected
+threat span should be ignored.
+
+## Parameters
+
+### start
+
+`number`
+
+Absolute 0-based character index of the threat start (inclusive).
+
+### end
+
+`number`
+
+Absolute 0-based character index of the threat end (exclusive).
+
+The predicate should return `true` only if the **entire span**
+falls within an ignore range.
+
+## Returns
+
+`boolean`

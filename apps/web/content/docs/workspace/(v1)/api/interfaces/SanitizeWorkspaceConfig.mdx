@@ -1,0 +1,69 @@
+[**@promptshield/workspace**](../index.md)
+
+***
+
+[@promptshield/workspace](../index.md) / SanitizeWorkspaceConfig
+
+# Interface: SanitizeWorkspaceConfig
+
+Defined in: [workspace.ts:446](https://github.com/promptshield-io/promptshield/blob/main/packages/workspace/src/workspace.ts#L446)
+
+Configuration for workspace-level sanitization.
+
+All options default to safe, non-destructive behavior.
+
+## Properties
+
+### concurrency?
+
+> `optional` **concurrency**: `number`
+
+Defined in: [workspace.ts:474](https://github.com/promptshield-io/promptshield/blob/main/packages/workspace/src/workspace.ts#L474)
+
+Maximum number of files processed concurrently.
+
+Controls I/O parallelism.
+
+#### Default
+
+```ts
+4
+```
+
+***
+
+### strict?
+
+> `optional` **strict**: `boolean`
+
+Defined in: [workspace.ts:456](https://github.com/promptshield-io/promptshield/blob/main/packages/workspace/src/workspace.ts#L456)
+
+Enable strict sanitization mode.
+
+When enabled:
+- The strict sanitizer implementation is used.
+- Strict nomalization is applied.
+
+#### Default
+
+```ts
+false
+```
+
+***
+
+### write?
+
+> `optional` **write**: `boolean`
+
+Defined in: [workspace.ts:465](https://github.com/promptshield-io/promptshield/blob/main/packages/workspace/src/workspace.ts#L465)
+
+Persist sanitized content to disk.
+
+When disabled, sanitization runs in dry-run mode.
+
+#### Default
+
+```ts
+false
+```

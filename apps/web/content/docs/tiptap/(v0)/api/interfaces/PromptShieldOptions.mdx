@@ -1,0 +1,259 @@
+[**@promptshield/tiptap**](../index.md)
+
+***
+
+[@promptshield/tiptap](../index.md) / PromptShieldOptions
+
+# Interface: PromptShieldOptions
+
+Defined in: [tiptap/src/types.ts:3](https://github.com/promptshield-io/promptshield/blob/main/packages/tiptap/src/types.ts#L3)
+
+## Extends
+
+- `ScanOptions`
+
+## Properties
+
+### debounceMs?
+
+> `optional` **debounceMs**: `number`
+
+Defined in: [tiptap/src/types.ts:20](https://github.com/promptshield-io/promptshield/blob/main/packages/tiptap/src/types.ts#L20)
+
+Milliseconds to debounce the scanner.
+
+#### Default
+
+```ts
+300
+```
+
+***
+
+### disableHomoglyphs?
+
+> `optional` **disableHomoglyphs**: `boolean`
+
+Defined in: [core/src/types.ts:277](https://github.com/promptshield-io/promptshield/blob/main/packages/core/src/types.ts#L277)
+
+Disable homoglyph detection
+
+#### Default
+
+```ts
+false
+```
+
+#### Inherited from
+
+`ScanOptions.disableHomoglyphs`
+
+***
+
+### disableInjectionPatterns?
+
+> `optional` **disableInjectionPatterns**: `boolean`
+
+Defined in: [core/src/types.ts:301](https://github.com/promptshield-io/promptshield/blob/main/packages/core/src/types.ts#L301)
+
+Disable injection-pattern detection
+
+#### Default
+
+```ts
+false
+```
+
+#### Inherited from
+
+`ScanOptions.disableInjectionPatterns`
+
+***
+
+### disableInvisible?
+
+> `optional` **disableInvisible**: `boolean`
+
+Defined in: [core/src/types.ts:271](https://github.com/promptshield-io/promptshield/blob/main/packages/core/src/types.ts#L271)
+
+Disable invisible-character detection
+
+#### Default
+
+```ts
+false
+```
+
+#### Inherited from
+
+`ScanOptions.disableInvisible`
+
+***
+
+### disableNormalization?
+
+> `optional` **disableNormalization**: `boolean`
+
+Defined in: [core/src/types.ts:295](https://github.com/promptshield-io/promptshield/blob/main/packages/core/src/types.ts#L295)
+
+Disable normalization detection
+
+#### Default
+
+```ts
+false
+```
+
+#### Inherited from
+
+`ScanOptions.disableNormalization`
+
+***
+
+### disableSmuggling?
+
+> `optional` **disableSmuggling**: `boolean`
+
+Defined in: [core/src/types.ts:283](https://github.com/promptshield-io/promptshield/blob/main/packages/core/src/types.ts#L283)
+
+Disable smuggling detection
+
+#### Default
+
+```ts
+false
+```
+
+#### Inherited from
+
+`ScanOptions.disableSmuggling`
+
+***
+
+### disableTrojan?
+
+> `optional` **disableTrojan**: `boolean`
+
+Defined in: [core/src/types.ts:289](https://github.com/promptshield-io/promptshield/blob/main/packages/core/src/types.ts#L289)
+
+Disable Trojan Source detection
+
+#### Default
+
+```ts
+false
+```
+
+#### Inherited from
+
+`ScanOptions.disableTrojan`
+
+***
+
+### hoverUi?
+
+> `optional` **hoverUi**: `boolean`
+
+Defined in: [tiptap/src/types.ts:26](https://github.com/promptshield-io/promptshield/blob/main/packages/tiptap/src/types.ts#L26)
+
+Whether to enable the built-in UI tooltips on hover.
+
+#### Default
+
+```ts
+true
+```
+
+***
+
+### ignoreChecker?
+
+> `optional` **ignoreChecker**: `IgnoreChecker`
+
+Defined in: [core/src/types.ts:308](https://github.com/promptshield-io/promptshield/blob/main/packages/core/src/types.ts#L308)
+
+Ignore checker function.
+
+#### Default
+
+```ts
+() => false
+```
+
+#### Inherited from
+
+`ScanOptions.ignoreChecker`
+
+***
+
+### minSeverity?
+
+> `optional` **minSeverity**: `Severity`
+
+Defined in: [core/src/types.ts:265](https://github.com/promptshield-io/promptshield/blob/main/packages/core/src/types.ts#L265)
+
+Minimum severity to report.
+
+#### Default
+
+```ts
+"LOW"
+```
+
+#### Inherited from
+
+`ScanOptions.minSeverity`
+
+***
+
+### scanOnPaste?
+
+> `optional` **scanOnPaste**: `boolean`
+
+Defined in: [tiptap/src/types.ts:14](https://github.com/promptshield-io/promptshield/blob/main/packages/tiptap/src/types.ts#L14)
+
+Whether to scan automatically when content is pasted.
+
+#### Default
+
+```ts
+true
+```
+
+***
+
+### scanOnUpdate?
+
+> `optional` **scanOnUpdate**: `boolean`
+
+Defined in: [tiptap/src/types.ts:8](https://github.com/promptshield-io/promptshield/blob/main/packages/tiptap/src/types.ts#L8)
+
+Whether to scan automatically when the document is updated.
+
+#### Default
+
+```ts
+true
+```
+
+***
+
+### stopOnFirstThreat?
+
+> `optional` **stopOnFirstThreat**: `boolean`
+
+Defined in: [core/src/types.ts:258](https://github.com/promptshield-io/promptshield/blob/main/packages/core/src/types.ts#L258)
+
+Stop scanning after the first detected threat.
+
+Useful for CI validation or fast-fail scenarios.
+
+#### Default
+
+```ts
+false
+```
+
+#### Inherited from
+
+`ScanOptions.stopOnFirstThreat`

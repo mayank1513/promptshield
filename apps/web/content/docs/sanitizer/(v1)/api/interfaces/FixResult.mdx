@@ -1,0 +1,53 @@
+[**@promptshield/sanitizer**](../index.md)
+
+***
+
+[@promptshield/sanitizer](../index.md) / FixResult
+
+# Interface: FixResult
+
+Defined in: [fix.ts:18](https://github.com/promptshield-io/promptshield/blob/main/packages/sanitizer/src/fix.ts#L18)
+
+Result returned by [applyFixes](../functions/applyFixes.md).
+
+Describes the outcome after attempting safe automatic fixes
+for detected threats within a text document.
+
+The result includes:
+
+- The updated text after modifications
+- Threats that were successfully fixed
+- Threats that were intentionally skipped
+
+Skipped threats usually require human review or contextual decisions
+that should not be performed automatically.
+
+## Properties
+
+### fixed
+
+> **fixed**: `ThreatReport`[]
+
+Defined in: [fix.ts:23](https://github.com/promptshield-io/promptshield/blob/main/packages/sanitizer/src/fix.ts#L23)
+
+Threats that were successfully fixed
+
+***
+
+### skipped
+
+> **skipped**: `ThreatReport`[]
+
+Defined in: [fix.ts:26](https://github.com/promptshield-io/promptshield/blob/main/packages/sanitizer/src/fix.ts#L26)
+
+Threats that were intentionally skipped
+
+***
+
+### text
+
+> **text**: `string`
+
+Defined in: [fix.ts:20](https://github.com/promptshield-io/promptshield/blob/main/packages/sanitizer/src/fix.ts#L20)
+
+Text after safe automatic fixes were applied

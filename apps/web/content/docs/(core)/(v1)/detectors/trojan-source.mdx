@@ -1,0 +1,235 @@
+---
+title: Trojan Source Detection
+---
+
+# Trojan Source Detection
+
+PromptShield detects **Unicode bidirectional (BIDI) control characters** that may cause
+text to appear differently from how it is actually interpreted.
+
+These attacks are known as **Trojan Source attacks**.
+
+Reference:
+
+- https://trojansource.codes/
+- https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2021-42574
+
+---
+
+## Why this matters
+
+Bidirectional (BIDI) control characters can manipulate **visual ordering**
+without changing the **logical ordering** of text.
+
+This allows attackers to hide instructions or code behavior that reviewers
+cannot easily see.
+
+For example, malicious content may appear harmless when displayed in an editor
+but execute differently when interpreted by a compiler, interpreter, or LLM.
+
+This is especially dangerous in:
+
+- prompts
+- templates
+- configuration files
+- documentation examples
+- generated content
+- code snippets
+
+The rendered text may look safe while the underlying text contains hidden logic.
+
+---
+
+## What PromptShield detects
+
+PromptShield scans the entire document and tracks **BIDI control contexts**.
+
+It detects:
+
+- matched **PUSH → POP override sequences**
+- **unterminated override contexts**
+- nested override sequences
+
+Each detection produces a single **threat span** covering the control sequence.
+
+---
+
+## Example attack
+
+```text
+Ignore ‮previous instructions
+````
+
+The hidden control character changes the visual ordering of the text.
+
+A reviewer may read:
+
+```
+Ignore previous instructions
+```
+
+while the logical text may behave differently when processed by software.
+
+---
+
+## Real-world example (from Trojan Source research)
+
+The original Trojan Source research demonstrated how bidirectional override
+characters can make malicious code appear safe to reviewers.
+
+Example (simplified):
+
+```text
+if (isAdmin) {
+  allowAccess();
+} else {
+  denyAccess();‮ } ⁦if (isAdmin)⁩
+}
+````
+
+What a reviewer may see in an editor:
+
+```
+if (isAdmin) {
+  allowAccess();
+} else {
+  denyAccess();
+}
+```
+
+What the program may logically execute:
+
+```
+if (isAdmin) {
+  allowAccess();
+} else {
+  denyAccess();
+} if (isAdmin)
+```
+
+The hidden bidirectional characters reorder how the code appears on screen,
+causing the malicious logic to be visually concealed.
+
+PromptShield detects these sequences as:
+
+* **PST001** when a matched BIDI override span exists
+* **PST002** when an override sequence is unterminated
+
+---
+
+## Detected characters
+
+PromptShield monitors the following Unicode characters.
+
+### Directional override / isolation
+
+| Type | Code point | Name |
+| ---- | ---------- | ---- |
+| PUSH | U+202A     | LRE  |
+| PUSH | U+202B     | RLE  |
+| PUSH | U+202D     | LRO  |
+| PUSH | U+202E     | RLO  |
+| PUSH | U+2066     | LRI  |
+| PUSH | U+2067     | RLI  |
+| PUSH | U+2068     | FSI  |
+| POP  | U+202C     | PDF  |
+| POP  | U+2069     | PDI  |
+
+### Directional marks
+
+These characters do not create push/pop scopes but still influence
+visual ordering and may participate in Trojan Source style obfuscation.
+
+| Type | Code point | Name |
+| ---- | ---------- | ---- |
+| MARK | U+200E     | LRM  |
+| MARK | U+200F     | RLM  |
+| MARK | U+061C     | ALM  |
+
+---
+
+## Rules
+
+### PST001
+
+> BIDI override sequence
+
+A matched **PUSH → POP** bidirectional override span was detected.
+
+This indicates text reordering behavior that may conceal instructions.
+
+Severity: **CRITICAL**
+
+Example diagnostic:
+
+```
+Bidirectional override characters detected (Trojan Source).
+These characters can visually reorder text and mislead readers.
+```
+
+---
+
+### PST002
+
+> Unterminated BIDI override
+
+A **PUSH** control character was detected without a corresponding **POP**.
+
+This is highly suspicious and may indicate an attempt to conceal text.
+
+Severity: **CRITICAL**
+
+Example diagnostic:
+
+```
+Unterminated bidirectional override sequence detected (Trojan Source).
+This may cause visual and logical text order to differ.
+```
+
+---
+
+## Suggested remediation
+
+Remove bidirectional control characters from prompts, templates, and source text.
+
+If bidirectional text support is required (for example in multilingual content),
+ensure control characters are:
+
+* intentional
+* visible during review
+* properly terminated
+
+Security-sensitive text should avoid BIDI overrides entirely.
+
+---
+
+## Design notes
+
+PromptShield performs **deterministic lexical detection** of Trojan Source patterns.
+
+The detector tracks BIDI contexts across the document and reports:
+
+* matched override spans
+* unterminated contexts
+* nested overrides
+
+Detection is independent of:
+
+* editor rendering behavior
+* programming language
+* markdown rendering engines
+
+This ensures consistent results across environments.
+
+---
+
+## Mental model
+
+Trojan Source detection in PromptShield is similar to:
+
+* Unicode safety linting
+* static source integrity checks
+* editor security warnings
+
+It protects against **visual deception**, not semantic correctness.
+

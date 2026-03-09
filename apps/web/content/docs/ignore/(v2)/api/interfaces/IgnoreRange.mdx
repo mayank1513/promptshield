@@ -1,0 +1,63 @@
+[**@promptshield/ignore**](../index.md)
+
+***
+
+[@promptshield/ignore](../index.md) / IgnoreRange
+
+# Interface: IgnoreRange
+
+Defined in: [ignore.ts:22](https://github.com/promptshield-io/promptshield/blob/main/packages/ignore/src/ignore.ts#L22)
+
+Represents a single inline ignore directive range.
+
+All line numbers are 1-based.
+`definedAt` is a character offset within the original text,
+used for precise editor diagnostics.
+
+## Properties
+
+### definedAt
+
+> **definedAt**: `object`
+
+Defined in: [ignore.ts:30](https://github.com/promptshield-io/promptshield/blob/main/packages/ignore/src/ignore.ts#L30)
+
+Absolute character offset where directive was defined.
+
+#### end
+
+> **end**: `Position`
+
+#### start
+
+> **start**: `Position`
+
+***
+
+### end
+
+> **end**: `number`
+
+Defined in: [ignore.ts:27](https://github.com/promptshield-io/promptshield/blob/main/packages/ignore/src/ignore.ts#L27)
+
+Last ignored line (inclusive).
+
+***
+
+### start
+
+> **start**: `number`
+
+Defined in: [ignore.ts:24](https://github.com/promptshield-io/promptshield/blob/main/packages/ignore/src/ignore.ts#L24)
+
+First ignored line (inclusive).
+
+***
+
+### used?
+
+> `optional` **used**: `boolean`
+
+Defined in: [ignore.ts:36](https://github.com/promptshield-io/promptshield/blob/main/packages/ignore/src/ignore.ts#L36)
+
+Internal flag used during filtering to mark usage.

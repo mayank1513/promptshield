@@ -1,0 +1,60 @@
+[**@promptshield/core**](../index.md)
+
+***
+
+[@promptshield/core](../index.md) / scanInjectionPatterns
+
+# Function: scanInjectionPatterns()
+
+> **scanInjectionPatterns**(`text`, `options?`): [`ThreatReportWithoutLocation`](../interfaces/ThreatReportWithoutLocation.md)[]
+
+Defined in: [injection-patterns.ts:237](https://github.com/promptshield-io/promptshield/blob/main/packages/core/src/injection-patterns.ts#L237)
+
+Scan text for deterministic prompt-injection patterns.
+
+Detection strategy:
+
+1. Perform **direct regex matching** against the raw text.
+2. Perform **normalized matching** to catch obfuscation such as:
+
+   - excessive whitespace
+   - character splitting
+   - accent obfuscation
+
+   Example:
+
+     i g n o r e
+     previous
+     instructions
+
+To avoid duplicate reporting:
+
+- Direct matches are recorded first.
+- Normalized matches are skipped if they overlap an already
+  detected span for the same rule.
+
+Complexity:
+
+- One normalization pass over the text
+- One regex scan per rule
+- One incremental normalized search per rule
+
+Overall runtime remains **linear in input size**.
+
+## Parameters
+
+### text
+
+`string`
+
+Raw text to scan
+
+### options?
+
+[`ScanOptions`](../interfaces/ScanOptions.md) = `{}`
+
+Scanner configuration
+
+## Returns
+
+[`ThreatReportWithoutLocation`](../interfaces/ThreatReportWithoutLocation.md)[]

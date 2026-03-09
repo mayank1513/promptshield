@@ -1,8 +1,8 @@
 {
   "title": "@promptshield/sanitizer",
   "description": "Deterministic threat stripper",
-  "lastModified": "2026-02-28T13:25:18.755Z",
-  "version": "0.0.1",
+  "lastModified": "2026-03-09T14:54:55.071Z",
+  "version": "1.0.0",
   "root": true,
   "icon": "Shield"
 }

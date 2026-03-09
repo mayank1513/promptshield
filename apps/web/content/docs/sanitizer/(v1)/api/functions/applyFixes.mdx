@@ -1,0 +1,54 @@
+[**@promptshield/sanitizer**](../index.md)
+
+***
+
+[@promptshield/sanitizer](../index.md) / applyFixes
+
+# Function: applyFixes()
+
+> **applyFixes**(`text`, `threats`): [`FixResult`](../interfaces/FixResult.md)
+
+Defined in: [fix.ts:58](https://github.com/promptshield-io/promptshield/blob/main/packages/sanitizer/src/fix.ts#L58)
+
+Applies safe automatic fixes for detected threats.
+
+This utility performs deterministic structural cleanup for
+threats that can be safely remediated without altering meaning.
+
+Design principles:
+
+- **Deterministic** – no heuristics or AI involved
+- **Idempotent** – running multiple times produces the same result
+- **Index-safe** – fixes are applied from end → start to prevent offset shifts
+- **Conservative** – only safe structural removals or normalizations are performed
+
+Examples of automatic fixes:
+
+- Removing invisible characters
+- Stripping hidden Markdown comments
+- Removing empty Markdown links
+- Unwrapping hidden HTML containers
+- Replacing encoded payloads with decoded content
+- Normalizing Unicode compatibility characters
+
+Some threats (such as prompt injection attempts) are intentionally
+**not modified automatically**, as doing so may alter the meaning
+of the original content. These are returned in the `skipped` list.
+
+## Parameters
+
+### text
+
+`string`
+
+Original scanned text
+
+### threats
+
+`ThreatReport`[]
+
+Detected threats to evaluate for safe fixes
+
+## Returns
+
+[`FixResult`](../interfaces/FixResult.md)

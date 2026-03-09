@@ -1,0 +1,43 @@
+[**@promptshield/ignore**](../index.md)
+
+***
+
+[@promptshield/ignore](../index.md) / FilteredThreatsResult
+
+# Interface: FilteredThreatsResult
+
+Defined in: [ignore.ts:53](https://github.com/promptshield-io/promptshield/blob/main/packages/ignore/src/ignore.ts#L53)
+
+Final filtered result after applying ignore rules.
+
+## Properties
+
+### ignoredBySeverity
+
+> **ignoredBySeverity**: `Record`\<`Severity`, `number`\>
+
+Defined in: [ignore.ts:57](https://github.com/promptshield-io/promptshield/blob/main/packages/ignore/src/ignore.ts#L57)
+
+***
+
+### ignoredThreats
+
+> **ignoredThreats**: `ThreatReport`[]
+
+Defined in: [ignore.ts:55](https://github.com/promptshield-io/promptshield/blob/main/packages/ignore/src/ignore.ts#L55)
+
+***
+
+### threats
+
+> **threats**: `ThreatReport`[]
+
+Defined in: [ignore.ts:54](https://github.com/promptshield-io/promptshield/blob/main/packages/ignore/src/ignore.ts#L54)
+
+***
+
+### unusedIgnores
+
+> **unusedIgnores**: `Omit`\<[`IgnoreRange`](IgnoreRange.md), `"used"`\>[]
+
+Defined in: [ignore.ts:56](https://github.com/promptshield-io/promptshield/blob/main/packages/ignore/src/ignore.ts#L56)

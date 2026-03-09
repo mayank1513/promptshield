@@ -1,0 +1,81 @@
+[**@promptshield/core**](../index.md)
+
+***
+
+[@promptshield/core](../index.md) / enrichWithLocation
+
+# Function: enrichWithLocation()
+
+> **enrichWithLocation**(`threats`, `text`, `context?`): [`ThreatReport`](../interfaces/ThreatReport.md)[]
+
+Defined in: [utils.ts:128](https://github.com/promptshield-io/promptshield/blob/main/packages/core/src/utils.ts#L128)
+
+Enriches ThreatReports with human-readable line/column locations.
+
+PromptShield detectors operate on absolute character offsets for
+performance and editor compatibility (e.g., Tiptap, LSP, AST tools).
+
+However, human-facing environments such as:
+
+- CLI output
+- CI diagnostics
+- logs
+- static analysis reports
+
+require line and column information.
+
+This helper converts offset-based threat ranges into location-aware
+structures in a single pass.
+
+The function computes line offsets once and resolves both start and
+end positions using binary search (`getLocForIndex`).
+
+This approach is significantly more efficient than resolving locations
+during detection or performing repeated scans of the input text.
+
+## Parameters
+
+### threats
+
+[`ThreatReportWithoutLocation`](../interfaces/ThreatReportWithoutLocation.md)[]
+
+List of ThreatReports produced by `scan()`. These must contain
+offset-based ranges (`range.start`, `range.end`).
+
+### text
+
+`string`
+
+The original scanned text used to generate the threats.
+
+### context?
+
+`Omit`\<[`ScanContext`](../interfaces/ScanContext.md), `"lineOffsets"`\> = `{}`
+
+Optional scan context for offset translation. Supports:
+- `baseLine`
+- `baseCol`
+
+This is useful when scanning substrings embedded inside a larger
+document (e.g., editor buffers, LSP fragments).
+
+## Returns
+
+[`ThreatReport`](../interfaces/ThreatReport.md)[]
+
+A new array of ThreatReports where each threat includes
+`loc.start` and `loc.end` describing the resolved line/column
+positions.
+
+## Example
+
+```ts
+const result = scan(text);
+const threats = enrichWithLoc(result.threats, text);
+
+console.log(threats[0].loc);
+// {
+//   start: { line: 2, column: 5, index: 17 },
+//   end:   { line: 2, column: 8, index: 20 }
+// }
+```

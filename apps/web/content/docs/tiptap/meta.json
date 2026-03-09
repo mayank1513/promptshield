@@ -1,0 +1,8 @@
+{
+  "title": "@promptshield/tiptap",
+  "description": "Real-time Tiptap editor security.",
+  "lastModified": "2026-03-09T14:54:59.088Z",
+  "version": "0.0.2",
+  "root": true,
+  "icon": "Shield"
+}
