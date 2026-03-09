@@ -1,5 +1,21 @@
 # @promptshield/sanitizer
 
+## 1.0.0
+
+### Major Changes
+
+- [`36c59e8`](https://github.com/promptshield-io/promptshield/commit/36c59e8a177ab763050017226c12a317d36fc32d) Thanks [@mayank1513](https://github.com/mayank1513)! - feat(@promptshield/sanitizer): bump to major version to align with @promptshield/core breaking changes
+
+  The core scanning engine has been refactored to use offset-based detection and centralized location resolution. Since sanitizer depends directly on core's scanning logic and report format, this major bump ensures ecosystem consistency.
+
+### Patch Changes
+
+- [`ac51eda`](https://github.com/promptshield-io/promptshield/commit/ac51eda96f796d5b175b17f997a675e0b1ea375e) Thanks [@mayank1513](https://github.com/mayank1513)! - - Upgrade to Tiptap v3 with backward compatibility for v2.
+  - Move Tiptap core dependencies to peerDependencies.
+  - Add `canFixThreat` logic to filter actions in the hover UI (homoglyphs and complex smuggling cases are hidden).
+  - Fix CodeQL warning in `@promptshield/sanitizer` regarding incomplete multi-character sanitization.
+  - Improve TypeScript ergonomics with module augmentation for storage and events.
+
 ## 0.0.2
 
 ### Patch Changes
