@@ -1,4 +1,3 @@
-import { performance } from "node:perf_hooks";
 import { scanHomoglyphs } from "./homoglyph";
 import { scanInjectionPatterns } from "./injection-patterns";
 import { scanInvisibleChars } from "./invisible";
@@ -7,19 +6,11 @@ import { scanSmuggling } from "./smuggling";
 import { scanTrojanSource } from "./trojan";
 import type {
   Detector,
-  ScanContext,
   ScanOptions,
   ScanResult,
-  ThreatReport,
+  ThreatReportWithoutLocation,
 } from "./types";
-
-export * from "./homoglyph";
-export * from "./injection-patterns";
-export * from "./invisible";
-export * from "./normalization";
-export * from "./smuggling";
-export * from "./trojan";
-export * from "./types";
+import { enrichWithLocation } from "./utils";
 
 /**
  * Core scanning entry point.
@@ -32,9 +23,6 @@ export * from "./types";
  * 4. Unicode normalization anomalies
  * 5. Smuggling techniques
  *
- * The provided `context` object is shared across detectors and may be
- * mutated for performance optimizations (e.g., caching line offsets).
- *
  * @example
  * ```ts
  * import { scan } from '@promptshield/core';
@@ -45,13 +33,8 @@ export * from "./types";
  * }
  * ```
  */
-export const scan = (
-  text: string,
-  options: ScanOptions = {},
-  context: ScanContext = {},
-): ScanResult => {
-  const start = performance.now();
-  const threats: ThreatReport[] = [];
+export const scan = (text: string, options: ScanOptions = {}): ScanResult => {
+  const threats: ThreatReportWithoutLocation[] = [];
 
   const detectors: Detector[] = [];
 
@@ -63,7 +46,7 @@ export const scan = (
   if (!options.disableInjectionPatterns) detectors.push(scanInjectionPatterns);
 
   for (const detector of detectors) {
-    const detectorThreats = detector(text, options, context);
+    const detectorThreats = detector(text, options);
     threats.push(...detectorThreats);
 
     if (options.stopOnFirstThreat && detectorThreats.length > 0) {
@@ -71,14 +54,8 @@ export const scan = (
     }
   }
 
-  const end = performance.now();
-
   return {
-    threats,
-    stats: {
-      durationMs: end - start,
-      totalChars: text.length,
-    },
+    threats: enrichWithLocation(threats, text),
     isClean: threats.length === 0,
   };
 };

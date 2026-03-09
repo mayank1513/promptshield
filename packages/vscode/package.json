@@ -141,6 +141,21 @@
           "type": "boolean",
           "default": false,
           "description": "Disable inline ignore rules in comments (e.g., // promptshield-ignore)."
+        },
+        "promptshield.validateOnChange": {
+          "type": "boolean",
+          "default": true,
+          "description": "Enable validation on document change events."
+        },
+        "promptshield.validateOnOpen": {
+          "type": "boolean",
+          "default": true,
+          "description": "Enable validation when a document is opened."
+        },
+        "promptshield.validateOnSave": {
+          "type": "boolean",
+          "default": true,
+          "description": "Enable validation when a document is saved."
         }
       }
     }

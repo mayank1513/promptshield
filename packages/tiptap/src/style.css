@@ -1,0 +1,225 @@
+/* Styling for PromptShield Threats in TipTap Editor */
+.promptshield-threat {
+  position: relative;
+  text-decoration: underline wavy var(--ps-threat-color, #e00);
+  background-color: var(--ps-threat-bg, rgba(238, 0, 0, 0.1));
+}
+
+.promptshield-threat.ps-severity-critical {
+  --ps-threat-color: #d32f2f;
+  --ps-threat-bg: rgba(211, 47, 47, 0.15);
+}
+
+.promptshield-threat.ps-severity-high {
+  --ps-threat-color: #f57c00;
+  --ps-threat-bg: rgba(245, 124, 0, 0.15);
+}
+
+.promptshield-threat.ps-severity-medium {
+  --ps-threat-color: #fbc02d;
+  --ps-threat-bg: rgba(251, 192, 45, 0.15);
+}
+
+.promptshield-threat.ps-severity-low {
+  --ps-threat-color: #1976d2;
+  --ps-threat-bg: rgba(25, 118, 210, 0.15);
+}
+
+/* Tooltip container styling - VSCode Theme */
+.ps-tooltip-container.ps-vscode-theme {
+  font-family:
+    -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial,
+    sans-serif;
+  background-color: #252526;
+  border: 1px solid #454545;
+  color: #cccccc;
+  padding: 0;
+  border-radius: 4px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.4);
+  font-size: 13px;
+  max-width: 450px;
+  min-width: 300px;
+  pointer-events: auto;
+  z-index: 1000;
+  overflow: hidden;
+}
+
+.ps-tooltip-content {
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.ps-tooltip-section {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.ps-tooltip-header {
+  border-bottom: 1px solid #3c3c3c;
+  padding-bottom: 8px;
+  margin-bottom: 4px;
+}
+
+.ps-tooltip-title-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 600;
+  color: #ffffff;
+}
+
+.ps-icon-shield {
+  color: #007acc;
+  flex-shrink: 0;
+}
+
+.ps-tooltip-severity-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+}
+
+.ps-tooltip-label {
+  color: #aaaaaa;
+  font-weight: 500;
+}
+
+.ps-tooltip-value {
+  font-weight: 700;
+  letter-spacing: 0.5px;
+}
+
+.ps-tooltip-value.ps-severity-critical {
+  color: #f14c4c;
+}
+.ps-tooltip-value.ps-severity-high {
+  color: #d16d0e;
+}
+.ps-tooltip-value.ps-severity-medium {
+  color: #cca700;
+}
+.ps-tooltip-value.ps-severity-low {
+  color: #3794ff;
+}
+
+.ps-tooltip-message {
+  line-height: 1.5;
+  color: #cccccc;
+  font-size: 13px;
+}
+
+.ps-tooltip-link {
+  color: #3794ff;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+  margin-top: 4px;
+}
+
+.ps-tooltip-link:hover {
+  text-decoration: underline;
+}
+
+.ps-tooltip-context {
+  background-color: #1e1e1e;
+  padding: 8px;
+  border-radius: 4px;
+  border-left: 3px solid #3c3c3c;
+}
+
+.ps-tooltip-code {
+  font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+  font-size: 12px;
+  color: #d4d4d4;
+  white-space: pre-wrap;
+  word-break: break-all;
+}
+
+.ps-tooltip-footer {
+  background-color: #1e1e1e;
+  padding: 8px 12px;
+  display: flex;
+  gap: 8px;
+  border-top: 1px solid #3c3c3c;
+  position: relative;
+}
+
+.ps-dropdown {
+  position: relative;
+  display: inline-block;
+}
+
+.ps-dropdown-trigger {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.ps-dropdown-menu {
+  position: absolute;
+  bottom: 100%;
+  left: 0;
+  background-color: #252526;
+  border: 1px solid #454545;
+  border-radius: 4px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.4);
+  z-index: 1001;
+  min-width: 160px;
+  margin-bottom: 4px;
+  padding: 4px 0;
+}
+
+.ps-dropdown-item {
+  width: 100%;
+  padding: 6px 12px;
+  border: none;
+  background: transparent;
+  color: #cccccc;
+  text-align: left;
+  font-size: 12px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: background 0.1s;
+}
+
+.ps-dropdown-item:hover {
+  background-color: #37373d;
+  color: #ffffff;
+}
+
+.ps-dropdown-item svg {
+  flex-shrink: 0;
+  opacity: 0.8;
+}
+
+.ps-tooltip-action-btn {
+  border: none;
+  padding: 4px 12px;
+  border-radius: 2px;
+  cursor: pointer;
+  font-size: 11px;
+  font-weight: 500;
+  transition: opacity 0.2s;
+}
+
+.ps-tooltip-action-btn:hover {
+  opacity: 0.85;
+}
+
+.ps-btn-primary {
+  background-color: #007acc;
+  color: #ffffff;
+}
+
+.ps-btn-secondary {
+  background-color: #3a3d41;
+  color: #cccccc;
+}

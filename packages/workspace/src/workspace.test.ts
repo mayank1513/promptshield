@@ -203,7 +203,15 @@ describe("workspace", () => {
       vi.mocked(utils.isBinary).mockResolvedValue(false);
       const mockCache = {
         get: vi.fn().mockResolvedValue({
-          threats: [{ severity: "LOW", loc: { index: 0 } }],
+          threats: [
+            {
+              severity: "LOW",
+              range: {
+                start: { index: 0, line: 1, column: 0 },
+                end: { index: 0, line: 1, column: 0 },
+              },
+            },
+          ],
           ignoredThreats: [],
           unusedIgnores: [],
           ignoredBySeverity: { LOW: 0, MEDIUM: 0, HIGH: 0, CRITICAL: 0 },
@@ -230,8 +238,20 @@ describe("workspace", () => {
       const mockCache = {
         get: vi.fn().mockResolvedValue({
           threats: [
-            { severity: "LOW", loc: { index: 0 } },
-            { severity: "CRITICAL", loc: { index: 1 } },
+            {
+              severity: "LOW",
+              range: {
+                start: { index: 0, line: 1, column: 0 },
+                end: { index: 0, line: 1, column: 0 },
+              },
+            },
+            {
+              severity: "CRITICAL",
+              range: {
+                start: { index: 1, line: 1, column: 1 },
+                end: { index: 1, line: 1, column: 1 },
+              },
+            },
           ],
           ignoredThreats: [],
           unusedIgnores: [],
@@ -284,10 +304,28 @@ describe("workspace", () => {
       vi.mocked(utils.isBinary).mockResolvedValue(false);
       vi.mocked(readFile).mockResolvedValue("test content");
       vi.mocked(core.scan).mockReturnValue({
-        threats: [{ severity: "HIGH", ruleId: "R1", loc: { index: 0 } } as any],
+        threats: [
+          {
+            severity: "HIGH",
+            ruleId: "R1",
+            range: {
+              start: { index: 0, line: 1, column: 0 },
+              end: { index: 0, line: 1, column: 0 },
+            },
+          } as any,
+        ],
       } as any);
       vi.mocked(ignore.filterThreats).mockReturnValue({
-        threats: [{ severity: "HIGH", ruleId: "R1", loc: { index: 0 } } as any],
+        threats: [
+          {
+            severity: "HIGH",
+            ruleId: "R1",
+            range: {
+              start: { index: 0, line: 1, column: 0 },
+              end: { index: 0, line: 1, column: 0 },
+            },
+          } as any,
+        ],
         ignoredThreats: [],
         unusedIgnores: [],
         ignoredBySeverity: { LOW: 0, MEDIUM: 0, HIGH: 0, CRITICAL: 0 },
@@ -295,7 +333,15 @@ describe("workspace", () => {
 
       vi.mocked(applyFixes).mockResolvedValue({
         text: "fixed content",
-        fixed: [{ ruleId: "R1", loc: { index: 0 } } as any],
+        fixed: [
+          {
+            ruleId: "R1",
+            range: {
+              start: { index: 0, line: 1, column: 0 },
+              end: { index: 0, line: 1, column: 0 },
+            },
+          } as any,
+        ],
         skipped: [],
       });
 
@@ -409,14 +455,40 @@ describe("workspace", () => {
       vi.mocked(readFile).mockResolvedValue("test content");
       vi.mocked(applyFixes).mockResolvedValue({
         text: "fixed content",
-        fixed: [{ ruleId: "R1", loc: { index: 0 } } as any],
+        fixed: [
+          {
+            ruleId: "R1",
+            range: {
+              start: { index: 0, line: 1, column: 0 },
+              end: { index: 0, line: 1, column: 0 },
+            },
+          } as any,
+        ],
         skipped: [],
       });
       vi.mocked(core.scan).mockReturnValue({
-        threats: [{ severity: "HIGH", ruleId: "R1", loc: { index: 0 } } as any],
+        threats: [
+          {
+            severity: "HIGH",
+            ruleId: "R1",
+            range: {
+              start: { index: 0, line: 1, column: 0 },
+              end: { index: 0, line: 1, column: 0 },
+            },
+          } as any,
+        ],
       } as any);
       vi.mocked(ignore.filterThreats).mockReturnValue({
-        threats: [{ severity: "HIGH", ruleId: "R1", loc: { index: 0 } } as any],
+        threats: [
+          {
+            severity: "HIGH",
+            ruleId: "R1",
+            range: {
+              start: { index: 0, line: 1, column: 0 },
+              end: { index: 0, line: 1, column: 0 },
+            },
+          } as any,
+        ],
         ignoredThreats: [],
         unusedIgnores: [],
         ignoredBySeverity: { LOW: 0, MEDIUM: 0, HIGH: 0, CRITICAL: 0 },
@@ -513,26 +585,38 @@ describe("workspace", () => {
                 category: "TEST",
                 severity: "CRITICAL",
                 message: "crit msg",
-                loc: { line: 1 },
+                range: {
+                  start: { line: 1, column: 0, index: 0 },
+                  end: { line: 1, column: 0, index: 0 },
+                },
                 readableLabel: "RL",
               } as any,
               {
                 category: "TEST",
                 severity: "HIGH",
                 message: "high msg",
-                loc: { line: 1 },
+                range: {
+                  start: { line: 1, column: 0, index: 0 },
+                  end: { line: 1, column: 0, index: 0 },
+                },
               } as any,
               {
                 category: "TEST",
                 severity: "MEDIUM",
                 message: "med msg",
-                loc: { line: 2 },
+                range: {
+                  start: { line: 2, column: 0, index: 0 },
+                  end: { line: 2, column: 0, index: 0 },
+                },
               } as any,
               {
                 category: "TEST",
                 severity: "LOW",
                 message: "low msg",
-                loc: { line: 3 },
+                range: {
+                  start: { line: 3, column: 0, index: 0 },
+                  end: { line: 3, column: 0, index: 0 },
+                },
               } as any,
             ],
           },

@@ -172,6 +172,16 @@ const publishAliases = async () => {
           aliasPkgJson.exports[key] = originalExports[key];
           continue;
         }
+
+        if (/.css$/.test(key)) {
+          await fs.writeFile(
+            path.resolve(distAliasesDir, key),
+            `@import "${canonical}/${key}";`,
+          );
+          aliasPkgJson.exports[key] = originalExports[key];
+          continue;
+        }
+
         // We only care about the key structure to mirror it.
         // value is irrelevant as we just re-export from canonical.
 

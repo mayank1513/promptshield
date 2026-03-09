@@ -46,8 +46,9 @@
 import { readFile } from "node:fs/promises";
 import os from "node:os";
 import { relative } from "node:path";
-import { type Severity, scan } from "@promptshield/core";
+import { type ScanOptions, type Severity, scan } from "@promptshield/core";
 import {
+  createIgnoreChecker,
   type FilteredThreatsResult,
   filterThreats,
 } from "@promptshield/ignore";
@@ -321,10 +322,13 @@ export const runPromptShield = async (
         continue;
       }
       const content = await readFile(file, "utf-8");
-      const scanResult = scan(content, {
+      const scanOptions: ScanOptions = {
         minSeverity: config.minSeverity,
-        stopOnFirstThreat: config.noInlineIgnore,
-      });
+        stopOnFirstThreat: true,
+        ignoreChecker: createIgnoreChecker(content),
+      };
+
+      const scanResult = scan(content, scanOptions);
 
       const filteredResult: FilteredThreatsResult = filterThreats(
         content,
@@ -453,11 +457,13 @@ export const runPromptShield = async (
       const { threats, unusedIgnores, fixed, skipped, ignoredBySeverity } =
         allThreats[path];
 
-      const fixedIds = new Set(fixed?.map((t) => `${t.loc.index}-${t.ruleId}`));
+      const fixedIds = new Set(
+        fixed?.map((t) => `${t.range.start.index}-${t.ruleId}`),
+      );
 
       threats.forEach((threat) => {
         logger[SEVERITY_TO_LOG_LEVEL[threat.severity]](
-          `${path}:${threat.loc.line}:${threat.loc.column} ${threat.ruleId} ${fixedIds.has(`${threat.loc.index}-${threat.ruleId}`) ? "(fixed)" : shouldApplyFixes ? "(skipped)" : ""}\n\n${threat.message}\n\n`,
+          `${path}:${threat.range.start.line}:${threat.range.start.column} ${threat.ruleId} ${fixedIds.has(`${threat.range.start.index}-${threat.ruleId}`) ? "(fixed)" : shouldApplyFixes ? "(skipped)" : ""}\n\n${threat.message}\n\n`,
         );
       });
 

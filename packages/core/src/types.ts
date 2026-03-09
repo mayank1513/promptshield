@@ -92,7 +92,7 @@ export enum ThreatCategory {
  * The scanner reports both human-readable and machine-friendly
  * position data.
  */
-export interface ThreatLoc {
+export interface Location {
   /** 1-based line number */
   line: number;
 
@@ -110,7 +110,7 @@ export interface ThreatLoc {
  * A ThreatReport represents a **span**, not a single character.
  * Adjacent suspicious characters should be grouped into one report.
  */
-export interface ThreatReport {
+export interface ThreatReportWithoutLocation {
   /**
    * Stable rule identifier.
    *
@@ -134,7 +134,12 @@ export interface ThreatReport {
   message: string;
 
   /** Location of the threat start */
-  loc: ThreatLoc;
+  range: {
+    /** Offset: 0-based character index */
+    start: number;
+    /** Offset: 0-based character index */
+    end: number;
+  };
 
   /**
    * The substring responsible for the detection.
@@ -174,13 +179,70 @@ export interface ThreatReport {
    * https://promptshield.js.org/docs/detectors/invisible-chars#PSU001
    */
   referenceUrl: string;
-
-  /**
-   * Indicates whether this threat was suppressed
-   * by an ignore directive.
-   */
-  suppressed?: boolean;
 }
+
+/**
+ * Threat report enriched with human-readable location information.
+ *
+ * `ThreatReport` extends the base `ThreatReportWithoutLocation` by replacing the
+ * offset-based `range` with resolved line/column locations. This format is
+ * intended for environments where diagnostics must be presented to humans,
+ * such as:
+ *
+ * - CLI output
+ * - CI reports
+ * - logs
+ * - editor diagnostics
+ *
+ * The core scanner operates purely on absolute character offsets for
+ * performance and interoperability with editor APIs (e.g., Tiptap, LSP).
+ * Location resolution is performed later using utilities such as
+ * `enrichWithLoc`.
+ *
+ * Each range endpoint includes:
+ *
+ * - `line`   — 1-based line number
+ * - `column` — 1-based column number
+ * - `index`  — original 0-based character offset
+ *
+ * Keeping the original `index` ensures deterministic mapping back to the
+ * source text while still providing user-friendly diagnostics.
+ *
+ * @example
+ * ```ts
+ * {
+ *   ruleId: "PSU001",
+ *   severity: "LOW",
+ *   message: "Invisible Unicode characters detected.",
+ *   range: {
+ *     start: { line: 2, column: 5, index: 17 },
+ *     end:   { line: 2, column: 6, index: 18 }
+ *   }
+ * }
+ * ```
+ */
+export interface ThreatReport
+  extends Omit<ThreatReportWithoutLocation, "range"> {
+  range: {
+    /** Start position of the detected threat span. */
+    start: Location;
+
+    /** End position of the detected threat span. */
+    end: Location;
+  };
+}
+
+/**
+ * Predicate used by the scanner to determine whether a detected
+ * threat span should be ignored.
+ *
+ * @param start - Absolute 0-based character index of the threat start (inclusive).
+ * @param end - Absolute 0-based character index of the threat end (exclusive).
+ *
+ * The predicate should return `true` only if the **entire span**
+ * falls within an ignore range.
+ */
+export type IgnoreChecker = (start: number, end: number) => boolean;
 
 /**
  * Scanner configuration options.
@@ -237,6 +299,13 @@ export interface ScanOptions {
    * @default false
    */
   disableInjectionPatterns?: boolean;
+
+  /**
+   * Ignore checker function.
+   *
+   * @default () => false
+   */
+  ignoreChecker?: IgnoreChecker;
 }
 
 /**
@@ -260,7 +329,7 @@ export interface ScanContext {
   /**
    * Precomputed line offsets for performance.
    */
-  lineOffsets?: number[];
+  lineOffsets: number[];
 }
 
 /**
@@ -274,22 +343,12 @@ export interface ScanContext {
 export type Detector = (
   text: string,
   options: ScanOptions,
-  context: ScanContext,
-) => ThreatReport[];
-
-/**
- * Performance metrics for a scan.
- */
-export interface ScanStats {
-  durationMs: number;
-  totalChars: number;
-}
+) => ThreatReportWithoutLocation[];
 
 /**
  * Result returned by the scanner.
  */
 export interface ScanResult {
   threats: ThreatReport[];
-  stats: ScanStats;
   isClean: boolean;
 }

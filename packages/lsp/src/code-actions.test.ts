@@ -21,10 +21,9 @@ const createThreat = (
   severity: "HIGH",
   message: "Test message",
   offendingText: text,
-  loc: {
-    line: line,
-    column: col,
-    index: 0, // Mocked, needs real offset logic if used
+  range: {
+    start: { line, column: col, index: 0 },
+    end: { line, column: col + text.length, index: text.length },
   },
   referenceUrl: "",
 });
@@ -40,24 +39,13 @@ describe("LSP Code Actions", () => {
   describe("getIgnoreAction", () => {
     it("should generate ignore comment for TypeScript", () => {
       const threat = createThreat(1, 1, "bad");
-      const action = getIgnoreAction(mockDoc, threat);
+      const ignoreAct = getIgnoreAction(mockDoc, threat);
+      const action = ignoreAct?.action;
       expect(action).toBeDefined();
       expect(action?.title).toBe("PromptShield: Ignore this line");
       expect(action?.edit?.changes?.["file:///test.ts"]).toBeDefined();
       const edit = action?.edit?.changes?.["file:///test.ts"][0];
       expect(edit?.newText).toContain("// promptshield-ignore");
-    });
-
-    it("should return null for unsupported language", () => {
-      const doc = TextDocument.create(
-        "file:///test.txt",
-        "plaintext",
-        1,
-        "content",
-      );
-      const threat = createThreat(1, 1, "content");
-      const action = getIgnoreAction(doc, threat);
-      expect(action).toBeNull();
     });
   });
 

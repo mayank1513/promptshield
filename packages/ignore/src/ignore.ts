@@ -1,4 +1,10 @@
-import type { Severity, ThreatReport } from "@promptshield/core";
+import {
+  getLineOffsets,
+  getLocForIndex,
+  type IgnoreChecker,
+  type Severity,
+  type ThreatReport,
+} from "@promptshield/core";
 
 /** VSCode position */
 interface Position {
@@ -13,7 +19,7 @@ interface Position {
  * `definedAt` is a character offset within the original text,
  * used for precise editor diagnostics.
  */
-interface IgnoreRange {
+export interface IgnoreRange {
   /** First ignored line (inclusive). */
   start: number;
 
@@ -33,7 +39,7 @@ interface IgnoreRange {
 /**
  * Result of parsing ignore directives from a document.
  */
-interface IgnoreParseResult {
+export interface IgnoreParseResult {
   /** Whether entire file should be ignored. */
   ignoreFile: boolean;
 
@@ -73,7 +79,7 @@ export interface FilteredThreatsResult {
  *   accumulated line offsets for accurate diagnostics.
  * - Line numbers are 1-based.
  */
-const parseIgnoreDirectives = (text: string): IgnoreParseResult => {
+export const parseIgnoreDirectives = (text: string): IgnoreParseResult => {
   const lines = text.split(/\r?\n/);
 
   const ranges: IgnoreRange[] = [];
@@ -158,12 +164,12 @@ const parseIgnoreDirectives = (text: string): IgnoreParseResult => {
  * - O(n log n) due to threat sorting
  * - O(n + m) filtering via two-pointer traversal
  *
- * @param text - Raw document text.
+ * @param textOrIgnoreRules - Raw document text or the result of `parseIgnoreDirectives`.
  * @param threats - Threats detected by core scan.
  * @param options - Optional filtering flags.
  */
 export const filterThreats = (
-  text: string,
+  textOrIgnoreRules: string | IgnoreParseResult,
   threats: ThreatReport[],
   options?: { noInlineIgnore?: boolean },
 ): FilteredThreatsResult => {
@@ -174,7 +180,6 @@ export const filterThreats = (
     LOW: 0,
   };
 
-  // Inline ignores disabled
   if (options?.noInlineIgnore) {
     return {
       threats,
@@ -184,10 +189,12 @@ export const filterThreats = (
     };
   }
 
-  const ignore = parseIgnoreDirectives(text);
+  const ignoreRules =
+    typeof textOrIgnoreRules === "string"
+      ? parseIgnoreDirectives(textOrIgnoreRules)
+      : textOrIgnoreRules;
 
-  // Whole-file ignore
-  if (ignore.ignoreFile) {
+  if (ignoreRules.ignoreFile) {
     threats.forEach((t) => {
       ignoredBySeverity[t.severity]++;
     });
@@ -195,24 +202,26 @@ export const filterThreats = (
     return {
       threats: [],
       ignoredThreats: threats,
-      unusedIgnores: ignore.ranges.map(({ used, ...r }) => r),
+      unusedIgnores: ignoreRules.ranges.map(({ used, ...r }) => r),
       ignoredBySeverity,
     };
   }
 
-  // Fast path
-  if (ignore.ranges.length === 0 || threats.length === 0) {
+  if (ignoreRules.ranges.length === 0 || threats.length === 0) {
     return {
       threats,
       ignoredThreats: [],
-      unusedIgnores: ignore.ranges.map(({ used, ...r }) => r),
+      unusedIgnores: ignoreRules.ranges.map(({ used, ...r }) => r),
       ignoredBySeverity,
     };
   }
 
-  const sortedThreats = threats.toSorted((a, b) => a.loc.index - b.loc.index);
+  const sortedThreats = threats.toSorted(
+    (a, b) => a.range.start.index - b.range.start.index,
+  );
 
-  const ranges = ignore.ranges;
+  // Ensure it is not mutated outside
+  const ranges = ignoreRules.ranges.map(({ used, ...r }) => r as IgnoreRange);
 
   const filtered: ThreatReport[] = [];
   const ignoredThreats: ThreatReport[] = [];
@@ -222,16 +231,19 @@ export const filterThreats = (
 
   while (t < sortedThreats.length) {
     const threat = sortedThreats[t++];
-    const line = threat.loc.line;
 
-    while (r < ranges.length && ranges[r].end < line) {
+    const startLine = threat.range.start.line;
+    const endLine = threat.range.end.line;
+
+    while (r < ranges.length && ranges[r].end < startLine) {
       r++;
     }
 
     if (r < ranges.length) {
       const range = ranges[r];
 
-      if (line >= range.start && line <= range.end) {
+      // Suppress only if the entire threat span is inside the ignore range
+      if (startLine >= range.start && endLine <= range.end) {
         range.used = true;
         ignoredThreats.push(threat);
         ignoredBySeverity[threat.severity]++;
@@ -251,5 +263,105 @@ export const filterThreats = (
     ignoredThreats,
     unusedIgnores,
     ignoredBySeverity,
+  };
+};
+
+/**
+ * Creates a fast ignore-check predicate from parsed ignore directives.
+ *
+ * This helper enables **early suppression checks** during scanning,
+ * allowing callers to skip threats that fall entirely within ignored
+ * line ranges.
+ *
+ * Behavior:
+ *
+ * - A threat is ignored **only if its entire span** (`start` → `end`)
+ *   falls within an ignore range.
+ * - Partial overlap does **not** suppress the threat.
+ *
+ * The predicate operates on **absolute character offsets** and resolves
+ * line numbers internally using precomputed line offsets.
+ *
+ * To simplify lookup, ignore ranges are **normalized once** during
+ * checker creation:
+ *
+ * - Overlapping ranges are merged.
+ * - Adjacent ranges are merged.
+ *
+ * Example:
+ *
+ * ```
+ * [1,3], [2,5], [7,9]
+ * → [1,5], [7,9]
+ * ```
+ *
+ * Complexity:
+ *
+ * - Preprocessing: O(r) (ranges are already sorted)
+ * - Lookup: O(r) worst case
+ *
+ * In practice `r` is very small (usually < 5).
+ *
+ * @param text Raw text used to resolve line numbers.
+ * @param ignoreRules Optional result from `parseIgnoreDirectives`.
+ *
+ * @returns Predicate returning `true` if a threat span should be ignored.
+ */
+export const createIgnoreChecker = (
+  text: string,
+  ignoreRules?: IgnoreParseResult,
+): IgnoreChecker => {
+  if (!ignoreRules) ignoreRules = parseIgnoreDirectives(text);
+
+  if (ignoreRules.ignoreFile) {
+    return () => true;
+  }
+
+  if (ignoreRules.ranges.length === 0) {
+    return () => false;
+  }
+
+  /**
+   * Normalize ranges by merging overlapping or adjacent intervals.
+   * Input ranges are already sorted by `start`.
+   */
+  const merged: IgnoreRange[] = [];
+
+  for (const r of ignoreRules.ranges) {
+    const last = merged[merged.length - 1];
+
+    if (!last || r.start > last.end + 1) {
+      merged.push({ ...r });
+    } else {
+      last.end = Math.max(last.end, r.end);
+    }
+  }
+
+  const lineOffsets = getLineOffsets(text);
+
+  return (start: number, end: number): boolean => {
+    const startLine = getLocForIndex(start, {
+      lineOffsets,
+      baseCol: 1,
+      baseLine: 1,
+    }).line;
+
+    const endLine = getLocForIndex(end, {
+      lineOffsets,
+      baseCol: 1,
+      baseLine: 1,
+    }).line;
+
+    for (const range of merged) {
+      if (startLine >= range.start && endLine <= range.end) {
+        return true;
+      }
+
+      if (range.start > endLine) {
+        break;
+      }
+    }
+
+    return false;
   };
 };

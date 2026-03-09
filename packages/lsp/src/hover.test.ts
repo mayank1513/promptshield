@@ -45,7 +45,10 @@ describe("LSP Hover", () => {
           severity: "HIGH",
           message: "Danger",
           offendingText: "bad",
-          loc: { line: 1, column: 1, index: 0 },
+          range: {
+            start: { line: 1, column: 1, index: 0 },
+            end: { line: 1, column: 4, index: 3 },
+          },
         },
       ],
     } as any);
@@ -71,7 +74,10 @@ describe("LSP Hover", () => {
           severity: "LOW",
           message: "Warning",
           offendingText: "meh",
-          loc: { line: 1, column: 1, index: 0 },
+          range: {
+            start: { line: 1, column: 1, index: 0 },
+            end: { line: 1, column: 4, index: 3 },
+          },
         },
       ],
     } as any);
@@ -97,7 +103,10 @@ describe("LSP Hover", () => {
           severity: "HIGH",
           message: "Danger",
           offendingText: "bad",
-          loc: { line: 1, column: 7, index: 6 },
+          range: {
+            start: { line: 1, column: 7, index: 6 },
+            end: { line: 1, column: 10, index: 9 },
+          },
         },
       ],
     } as any);
@@ -109,7 +118,7 @@ describe("LSP Hover", () => {
     // Character before
     expect(getHover(document, { line: 0, character: 5 })).toBeNull();
     // Character after
-    expect(getHover(document, { line: 0, character: 9 })).toBeNull();
+    expect(getHover(document, { line: 0, character: 10 })).toBeNull();
     // Correct position
     expect(getHover(document, { line: 0, character: 7 })).not.toBeNull();
   });
@@ -128,7 +137,10 @@ describe("LSP Hover", () => {
           severity: "HIGH",
           message: "Danger",
           offendingText: "bad",
-          loc: { line: 1, column: 1, index: 0 },
+          range: {
+            start: { line: 1, column: 1, index: 0 },
+            end: { line: 1, column: 4, index: 3 },
+          },
           suggestion: "Remove this.",
         },
       ],

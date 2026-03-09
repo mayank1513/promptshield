@@ -205,7 +205,9 @@ export class DecorationManager implements vscode.Disposable {
     diagnostics: readonly vscode.Diagnostic[],
   ) {
     const editors = vscode.window.visibleTextEditors.filter(
-      (e) => e.document.uri.toString() === uri.toString(),
+      (e) =>
+        e.document.uri.fsPath === uri.fsPath ||
+        e.document.uri.toString() === uri.toString(),
     );
 
     for (const editor of editors) {
@@ -340,7 +342,9 @@ export class DecorationManager implements vscode.Disposable {
 
     if (
       vscode.window.activeTextEditor &&
-      vscode.window.activeTextEditor.document.uri.toString() === uri.toString()
+      (vscode.window.activeTextEditor.document.uri.fsPath === uri.fsPath ||
+        vscode.window.activeTextEditor.document.uri.toString() ===
+          uri.toString())
     ) {
       this._onThreatsChanged.fire({
         count: diagnostics.length,

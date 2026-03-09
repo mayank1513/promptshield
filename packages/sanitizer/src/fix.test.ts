@@ -8,15 +8,24 @@ const createThreat = (
   offendingText: string,
   index: number,
   readableLabel: string = "test",
+  decodedPayload?: string,
 ): ThreatReport => ({
   ruleId: "TEST001",
   category,
   severity: "HIGH",
   message: "Test threat",
-  loc: { line: 1, column: index + 1, index },
+  range: {
+    start: { line: 1, column: index + 1, index },
+    end: {
+      line: 1,
+      column: index + 1 + offendingText.length,
+      index: index + offendingText.length,
+    },
+  },
   offendingText,
   readableLabel,
   referenceUrl: "",
+  decodedPayload,
 });
 
 describe("applyFixes", () => {
@@ -84,21 +93,22 @@ describe("applyFixes", () => {
       expect(result.fixed).toHaveLength(1);
     });
 
-    it("should skip Base64 payloads (unsafe to autorecover)", () => {
+    it("should decode Base64 payloads", () => {
       const text = "Execute: VGhpcyBpcyBiYWQ=";
       const threat = createThreat(
         ThreatCategory.Smuggling,
         "VGhpcyBpcyBiYWQ=",
         9,
-        "[Base64]: ...",
+        "[Base64]: This is bad",
+        "This is bad",
       );
 
       const result = applyFixes(text, [threat]);
 
-      expect(result.text).toBe(text);
-      expect(result.fixed).toHaveLength(0);
-      expect(result.skipped).toHaveLength(1);
-      expect(result.skipped[0]).toBe(threat);
+      expect(result.text).toBe("Execute: This is bad");
+      expect(result.fixed).toHaveLength(1);
+      expect(result.skipped).toHaveLength(0);
+      expect(result.fixed[0]).toBe(threat);
     });
   });
 
@@ -143,20 +153,15 @@ describe("applyFixes", () => {
     });
 
     it("should handle mixed fixed and skipped threats", () => {
-      const text = "H\u200Bello Base64";
+      const text = "H\u200Bello Unknown";
       const t1 = createThreat(ThreatCategory.Invisible, "\u200B", 1);
-      const t2 = createThreat(
-        ThreatCategory.Smuggling,
-        "Base64",
-        7,
-        "[Base64]: ...",
-      ); // Should skip
+      const t2 = createThreat(ThreatCategory.Injection, "Unknown", 7); // Should skip
 
       const result = applyFixes(text, [t1, t2]);
 
-      expect(result.text).toBe("Hello Base64");
+      expect(result.text).toBe("Hello Unknown");
       expect(result.fixed).toHaveLength(1); // ZWSP fixed
-      expect(result.skipped).toHaveLength(1); // Base64 skipped
+      expect(result.skipped).toHaveLength(1); // Injection skipped
     });
   });
 });

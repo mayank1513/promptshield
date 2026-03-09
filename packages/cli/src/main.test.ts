@@ -18,6 +18,7 @@ vi.mock("node:fs/promises");
 vi.mock("@promptshield/core");
 vi.mock("@promptshield/ignore", () => ({
   filterThreats: vi.fn(),
+  createIgnoreChecker: vi.fn(() => vi.fn(() => false)),
 }));
 vi.mock("@promptshield/sanitizer");
 vi.mock("@promptshield/workspace", () => ({
@@ -88,7 +89,10 @@ describe("runPromptShield", () => {
           severity: "HIGH",
           category: "INVISIBLE",
           message: "Hidden char",
-          loc: { line: 1, column: 1 },
+          range: {
+            start: { line: 1, column: 1, index: 0 },
+            end: { line: 1, column: 10, index: 9 },
+          },
         },
       ];
       mockScan.mockReturnValue({ threats });
@@ -138,7 +142,17 @@ describe("runPromptShield", () => {
         yield {
           path: "test.ts",
           result: {
-            threats: [{ severity: "HIGH", loc: { line: 1, column: 1 } }],
+            threats: [
+              {
+                severity: "HIGH",
+                ruleId: "PSI001",
+                message: "Threat",
+                range: {
+                  start: { line: 1, column: 1, index: 0 },
+                  end: { line: 1, column: 1, index: 0 },
+                },
+              },
+            ],
             unusedIgnores: [],
             ignoredBySeverity: {},
           },
@@ -199,7 +213,17 @@ describe("runPromptShield", () => {
         yield {
           path: "test.ts",
           result: {
-            threats: [{ severity: "HIGH", loc: { line: 1, column: 1 } }],
+            threats: [
+              {
+                severity: "HIGH",
+                ruleId: "PSI001",
+                message: "Threat",
+                range: {
+                  start: { line: 1, column: 1, index: 0 },
+                  end: { line: 1, column: 1, index: 0 },
+                },
+              },
+            ],
             unusedIgnores: [],
             fixed: [],
             ignoredBySeverity: {},
@@ -268,9 +292,27 @@ describe("runPromptShield", () => {
         yield {
           path: "test.ts",
           result: {
-            threats: [{ severity: "HIGH", loc: { line: 1, column: 1 } }],
+            threats: [
+              {
+                severity: "HIGH",
+                ruleId: "PSI001",
+                message: "Threat",
+                range: {
+                  start: { line: 1, column: 1, index: 0 },
+                  end: { line: 1, column: 1, index: 0 },
+                },
+              },
+            ],
             unusedIgnores: [],
-            fixed: [{ ruleId: 1, loc: { index: 0 } }],
+            fixed: [
+              {
+                ruleId: "PSU001",
+                range: {
+                  start: { line: 1, column: 1, index: 0 },
+                  end: { line: 1, column: 1, index: 0 },
+                },
+              },
+            ],
             ignoredBySeverity: {},
           },
           progress: 100,

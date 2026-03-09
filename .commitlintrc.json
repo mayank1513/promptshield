@@ -15,6 +15,7 @@
         "@promptshield/ignore",
         "@promptshield/lsp",
         "@promptshield/sanitizer",
+        "@promptshield/tiptap",
         "@promptshield/workspace",
         "promptshield",
         "@app/web"

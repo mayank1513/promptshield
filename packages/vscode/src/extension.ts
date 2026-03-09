@@ -53,9 +53,13 @@ export function activate(context: vscode.ExtensionContext) {
   const clientOptions: LanguageClientOptions = {
     documentSelector: [{ scheme: "file", pattern: "**/*" }],
     synchronize: {
-      fileEvents: IGNORE_FILES.map((file) =>
-        vscode.workspace.createFileSystemWatcher(`**/${file}`),
-      ),
+      fileEvents: [
+        ...IGNORE_FILES.map((file) =>
+          vscode.workspace.createFileSystemWatcher(`**/${file}`),
+        ),
+        // only watches file deletion
+        vscode.workspace.createFileSystemWatcher("**/*", true, true, false),
+      ],
     },
   };
 
@@ -269,7 +273,9 @@ export function activate(context: vscode.ExtensionContext) {
         return;
       }
 
-      type ThreatItemType = vscode.QuickPickItem & { threat: ThreatReport };
+      type ThreatItemType = vscode.QuickPickItem & {
+        threat: ThreatReport;
+      };
 
       const items: ThreatItemType[] = promptShieldDiagnostics
         .map((diagnostic) => {
@@ -285,7 +291,7 @@ export function activate(context: vscode.ExtensionContext) {
               group.length > 1
                 ? `[Multiple, ${primary.severity}] ${categories}`
                 : `[${primary.severity}] ${primary.category}`,
-            description: `Line ${primary.loc.line}, Col ${primary.loc.column}`,
+            description: `Line ${primary.range.start.line}, Col ${primary.range.start.column}`,
             detail:
               group.length > 1
                 ? `${group.length} threats at this location`
@@ -304,7 +310,7 @@ export function activate(context: vscode.ExtensionContext) {
 
       if (selection) {
         const t = selection.threat;
-        const pos = editor.document.positionAt(t.loc.index);
+        const pos = editor.document.positionAt(t.range.start.index);
         editor.selection = new vscode.Selection(pos, pos);
         editor.revealRange(
           new vscode.Range(pos, pos),

@@ -1,10 +1,8 @@
 import {
-  type ScanContext,
   type ScanOptions,
   ThreatCategory,
-  type ThreatReport,
+  type ThreatReportWithoutLocation,
 } from "./types";
-import { getLineOffsets, getLocForIndex } from "./utils";
 
 /**
  * Unicode script detectors.
@@ -61,16 +59,14 @@ const WORD_REGEX = /[\p{L}\p{N}_]+/gu;
 export const scanHomoglyphs = (
   text: string,
   options: ScanOptions = {},
-  context: ScanContext = {},
-): ThreatReport[] => {
+): ThreatReportWithoutLocation[] => {
   // Clone regex to avoid shared lastIndex mutation during concurrent scans
   const regex = new RegExp(WORD_REGEX);
   let match: RegExpExecArray | null = regex.exec(text);
 
   if (!match) return [];
 
-  const threats: ThreatReport[] = [];
-  context.lineOffsets = context.lineOffsets ?? getLineOffsets(text);
+  const threats: ThreatReportWithoutLocation[] = [];
 
   while (match !== null) {
     const word = match[0];
@@ -92,6 +88,8 @@ export const scanHomoglyphs = (
       if (hasCyrillic) scripts.push("Cyrillic");
       if (hasGreek) scripts.push("Greek");
 
+      const start = index;
+      const end = start + word.length;
       threats.push({
         ruleId: "PSH001",
         category: ThreatCategory.Homoglyph,
@@ -101,14 +99,16 @@ export const scanHomoglyphs = (
         )})`,
         referenceUrl:
           "https://promptshield.js.org/docs/detectors/homoglyph#PSH001",
-        loc: getLocForIndex(index, context),
+        range: { start, end },
         offendingText: word,
         readableLabel: `[Mixed-Script] ${word}`,
         suggestion:
           "Replace visually similar characters with characters from a single script.",
       });
 
-      if (options?.stopOnFirstThreat) return threats;
+      if (options?.stopOnFirstThreat && !options.ignoreChecker?.(index, end)) {
+        return threats;
+      }
     }
 
     match = regex.exec(text);

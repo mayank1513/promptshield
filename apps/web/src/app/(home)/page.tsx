@@ -6,6 +6,7 @@ import { HeroSection } from "../../components/hero-section";
 import { HowItWorksSection } from "../../components/how-it-works-section";
 import { QuickStartSection } from "../../components/quick-start-section";
 import { ScopeLimitationsSection } from "../../components/scope-limitations-section";
+import { TiptapDemoSection } from "../../components/tiptap-demo-section";
 import { TryItOutSection } from "../../components/try-it-out-section";
 import { WhyItMattersSection } from "../../components/why-it-matters-section";
 
@@ -24,9 +25,10 @@ export default function HomePage() {
   return (
     <div className="flex flex-col flex-1 w-full bg-[var(--color-ps-bg)] text-[var(--color-ps-fg)] antialiased">
       <HeroSection />
+      <TiptapDemoSection />
+      <TryItOutSection />
       <WhyItMattersSection />
       <ScopeLimitationsSection />
-      <TryItOutSection />
       <HowItWorksSection />
       <EcosystemSection />
       <FeatureOverviewSection />

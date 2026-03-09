@@ -1,19 +1,24 @@
 import {
-  type ScanContext,
   type ScanOptions,
   ThreatCategory,
-  type ThreatReport,
+  type ThreatReportWithoutLocation,
 } from "./types";
-import { getLineOffsets, getLocForIndex } from "./utils";
 
 /**
- * BIDI control characters used in Trojan Source attacks.
+ * Unicode Bidirectional control characters used in Trojan Source attacks.
  *
  * Reference:
  * CVE-2021-42574
  * https://trojansource.codes/
+ *
+ * PUSH characters start a directional override/isolation context.
+ * POP characters terminate that context.
+ *
+ * LRM / RLM / ALM are included because they influence visual ordering
+ * and may be used in obfuscation sequences even though they do not
+ * create explicit push/pop scopes.
  */
-const BIDI_CHARS: Record<string, "PUSH" | "POP"> = {
+const BIDI_CHARS: Record<string, "PUSH" | "POP" | "MARK"> = {
   "\u202A": "PUSH", // LRE
   "\u202B": "PUSH", // RLE
   "\u202D": "PUSH", // LRO
@@ -21,76 +26,104 @@ const BIDI_CHARS: Record<string, "PUSH" | "POP"> = {
   "\u2066": "PUSH", // LRI
   "\u2067": "PUSH", // RLI
   "\u2068": "PUSH", // FSI
+
   "\u202C": "POP", // PDF
   "\u2069": "POP", // PDI
+
+  "\u200E": "MARK", // LRM
+  "\u200F": "MARK", // RLM
+  "\u061C": "MARK", // ALM
 };
 
 /**
  * Trojan Source detector.
  *
  * Detects unsafe usage of Unicode Bidirectional (BIDI) control characters
- * that may cause visual ordering to differ from logical ordering.
+ * that can cause the *visual order* of text to differ from its *logical order*.
+ *
+ * These attacks allow malicious code or instructions to appear benign to
+ * reviewers while executing differently when interpreted by compilers,
+ * interpreters, or LLMs.
+ *
+ * Detection rules:
+ *
+ * PST001 — Matched BIDI override sequence
+ * PST002 — Unterminated BIDI override sequence
  */
 export const scanTrojanSource = (
   text: string,
   options: ScanOptions = {},
-  context: ScanContext = {},
-): ThreatReport[] => {
-  const threats: ThreatReport[] = [];
-  context.lineOffsets = context.lineOffsets ?? getLineOffsets(text);
+): ThreatReportWithoutLocation[] => {
+  const threats: ThreatReportWithoutLocation[] = [];
 
-  const lines = text.split("\n");
-  let globalIndex = 0;
+  /**
+   * Stack of active BIDI push contexts.
+   *
+   * Nested contexts are valid in Unicode and must be handled correctly.
+   */
+  const stack: number[] = [];
 
-  for (let lineIdx = 0; lineIdx < lines.length; lineIdx++) {
-    const line = lines[lineIdx];
-    let pushIndex: number | null = null;
+  let index = 0;
 
-    for (let colIdx = 0; colIdx < line.length; colIdx++) {
-      const char = line[colIdx];
-      const type = BIDI_CHARS[char];
+  for (let i = 0; i < text.length; ) {
+    const code = text.codePointAt(i) as number;
+    const char = String.fromCodePoint(code);
+    const type = BIDI_CHARS[char];
 
-      if (type === "PUSH" && pushIndex === null) {
-        pushIndex = globalIndex;
-      } else if (type === "POP" && pushIndex !== null) {
-        const endIndex = globalIndex + 1;
+    /**
+     * PUSH — start new BIDI context
+     */
+    if (type === "PUSH") {
+      stack.push(index);
+    } else if (type === "POP" && stack.length) {
+      /**
+       * POP — close most recent context
+       */
+      const start = stack.pop() as number;
+      const end = index + char.length;
 
-        const offendingText = text.slice(pushIndex, endIndex);
-        const decodedPayload = text.slice(pushIndex + 1, globalIndex);
+      const offendingText = text.slice(start, end);
 
-        threats.push({
-          ruleId: "PST001",
-          category: ThreatCategory.Trojan,
-          severity: "CRITICAL",
-          message:
-            "Bidirectional override characters detected (Trojan Source). These characters can visually reorder text and mislead readers.",
-          referenceUrl:
-            "https://promptshield.js.org/docs/detectors/trojan-source#PST001",
-          loc: getLocForIndex(pushIndex, context),
-          offendingText,
-          decodedPayload,
-          readableLabel: "[BIDI_OVERRIDE]",
-          suggestion:
-            "Remove bidirectional control characters from the source.",
-        });
+      /**
+       * Inner logical content between control characters.
+       */
+      const innerText = text.slice(start + 1, end - 1);
 
-        pushIndex = null;
+      threats.push({
+        ruleId: "PST001",
+        category: ThreatCategory.Trojan,
+        severity: "CRITICAL",
+        message:
+          "Bidirectional override characters detected (Trojan Source). These characters can visually reorder text and mislead reviewers.",
+        referenceUrl:
+          "https://promptshield.js.org/docs/detectors/trojan-source#PST001",
+        range: { start, end },
+        offendingText,
+        decodedPayload: innerText,
+        readableLabel: "[BIDI_OVERRIDE]",
+        suggestion:
+          "Remove bidirectional control characters or replace them with visible equivalents.",
+      });
 
-        if (options.stopOnFirstThreat) return threats;
-      }
-
-      globalIndex++;
+      if (options.stopOnFirstThreat && !options.ignoreChecker?.(start, end))
+        return threats;
     }
 
     /**
-     * CRITICAL RULE:
-     * Any BIDI context left open at end of line is suspicious.
+     * CRITICAL RULE
+     *
+     * If a newline is reached while a BIDI context remains open,
+     * the sequence is suspicious.
+     *
+     * Trojan Source attacks often rely on unterminated contexts
+     * that span code regions.
      */
-    if (pushIndex !== null) {
-      const lineEndIndex = globalIndex;
+    if ((char === "\n" || char === "\r") && stack.length) {
+      const start = stack.pop() as number;
+      const end = index;
 
-      const offendingText = text.slice(pushIndex, lineEndIndex);
-      const decodedPayload = text.slice(pushIndex + 1, lineEndIndex);
+      const offendingText = text.slice(start, end);
+      const innerText = text.slice(start + 1, end);
 
       threats.push({
         ruleId: "PST002",
@@ -100,18 +133,52 @@ export const scanTrojanSource = (
           "Unterminated bidirectional override sequence detected (Trojan Source). This may cause visual and logical text order to differ.",
         referenceUrl:
           "https://promptshield.js.org/docs/detectors/trojan-source#PST002",
-        loc: getLocForIndex(pushIndex, context),
+        range: { start, end },
         offendingText,
-        decodedPayload,
+        decodedPayload: innerText,
         readableLabel: "[BIDI_UNTERMINATED]",
         suggestion:
-          "Remove BIDI control characters or ensure they are properly terminated within the same line.",
+          "Ensure BIDI control characters are properly terminated within the same logical line or remove them entirely.",
       });
 
-      if (options.stopOnFirstThreat) return threats;
+      if (options.stopOnFirstThreat && !options.ignoreChecker?.(start, end))
+        return threats;
     }
 
-    globalIndex++; // newline
+    index += char.length;
+    i += char.length;
+  }
+
+  /**
+   * Final safety check:
+   *
+   * Any remaining open contexts at EOF are suspicious.
+   */
+  while (stack.length) {
+    const start = stack.pop() as number;
+    const end = text.length;
+
+    const offendingText = text.slice(start, end);
+    const innerText = text.slice(start + 1);
+
+    threats.push({
+      ruleId: "PST002",
+      category: ThreatCategory.Trojan,
+      severity: "CRITICAL",
+      message:
+        "Unterminated bidirectional override sequence detected (Trojan Source).",
+      referenceUrl:
+        "https://promptshield.js.org/docs/detectors/trojan-source#PST002",
+      range: { start, end },
+      offendingText,
+      decodedPayload: innerText,
+      readableLabel: "[BIDI_UNTERMINATED]",
+      suggestion:
+        "Remove or terminate bidirectional override characters before the end of the document.",
+    });
+
+    if (options.stopOnFirstThreat && !options.ignoreChecker?.(start, end))
+      return threats;
   }
 
   return threats;

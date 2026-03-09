@@ -16,9 +16,9 @@ export const convertReportsToDiagnostics = (
 ): Diagnostic[] => {
   const grouped = new Map<number, ThreatReport[]>();
   for (const r of reports) {
-    const group = grouped.get(r.loc.index) ?? [];
+    const group = grouped.get(r.range.start.index) ?? [];
     group.push(r);
-    grouped.set(r.loc.index, group);
+    grouped.set(r.range.start.index, group);
   }
 
   const diagnostics: Diagnostic[] = [];
@@ -29,8 +29,8 @@ export const convertReportsToDiagnostics = (
     });
     const primaryReport = group[0];
 
-    const startLine = primaryReport.loc.line - 1;
-    const startChar = primaryReport.loc.column - 1;
+    const start = primaryReport.range.start;
+    const end = primaryReport.range.end;
 
     let message = primaryReport.message;
     if (group.length > 1) {
@@ -39,12 +39,8 @@ export const convertReportsToDiagnostics = (
     }
 
     const range = {
-      start: { line: startLine, character: startChar },
-      end: {
-        line: startLine,
-        character:
-          startChar + Math.max(...group.map((g) => g.offendingText.length)),
-      },
+      start: { line: start.line - 1, character: start.column - 1 },
+      end: { line: end.line - 1, character: end.column - 1 },
     };
     diagnostics.push({
       severity: SEVERITY_MAP[primaryReport.severity] as DiagnosticSeverity,

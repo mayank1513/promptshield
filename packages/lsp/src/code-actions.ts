@@ -115,35 +115,62 @@ const COMMENT_STYLES: Record<string, string> = {
 };
 
 /**
+ * Fallback comment wrapping for unknown languages (like markdown)
+ */
+const getCommentDirective = (languageId: string, directive: string): string => {
+  const prefix = COMMENT_STYLES[languageId];
+  if (prefix) {
+    return `${prefix} ${directive}`;
+  }
+  return `<!-- ${directive} -->`;
+};
+
+/**
  * Create "Ignore this line" code action.
  */
 export const getIgnoreAction = (
   document: TextDocument,
   threat: ThreatReport,
-): CodeAction | null => {
-  const commentPrefix = COMMENT_STYLES[document.languageId];
-  if (!commentPrefix) return null; // Don't offer ignore if we don't know how to comment
+): { action: CodeAction; directive: string } | null => {
+  const startLine = threat.range.start.line - 1;
+  const endLine = threat.range.end.line - 1;
+  const lineCount = endLine - startLine + 1;
 
-  const line = threat.loc.line - 1;
-  const lineStart = document.offsetAt({ line, character: 0 });
+  const lineStart = document.offsetAt({ line: startLine, character: 0 });
 
   // Better: Get indentation from the current line to match
   const lineText = document.getText({
-    start: { line, character: 0 },
-    end: { line, character: 100 },
+    start: { line: startLine, character: 0 },
+    end: { line: startLine, character: 100 },
   });
   const match = lineText.match(/^(\s*)/);
   const indentation = match ? match[1] : "";
 
+  const baseDirective =
+    lineCount > 1
+      ? `promptshield-ignore next ${lineCount}`
+      : `promptshield-ignore`;
+
+  const commentDirective = getCommentDirective(
+    document.languageId,
+    baseDirective,
+  );
+
   const edit = TextEdit.insert(
     document.positionAt(lineStart),
-    `${indentation}${commentPrefix} promptshield-ignore\n`,
+    `${indentation}${commentDirective}\n`,
   );
 
   return {
-    title: "PromptShield: Ignore this line",
-    kind: CodeActionKind.QuickFix,
-    edit: { changes: { [document.uri]: [edit] } },
+    action: {
+      title:
+        lineCount > 1
+          ? `PromptShield: Ignore next ${lineCount} lines`
+          : "PromptShield: Ignore this line",
+      kind: CodeActionKind.QuickFix,
+      edit: { changes: { [document.uri]: [edit] } },
+    },
+    directive: commentDirective,
   };
 };
 
@@ -155,23 +182,27 @@ export const getThreatFixActions = (
   threats: ThreatReport[],
 ): CodeAction[] => {
   const original = document.getText();
+  const seenActions = new Set<string>();
+  const actions: CodeAction[] = [];
 
-  return threats.flatMap((threat) => {
-    const actions: CodeAction[] = [];
-
+  for (const threat of threats) {
     const result = applyFixes(original, [threat]);
     const edit = computeMinimalEdit(document, original, result.text);
 
     if (edit) {
-      actions.push({
-        title: `PromptShield: Fix ${threat.category}`,
-        kind: CodeActionKind.QuickFix,
-        edit: { changes: { [document.uri]: [edit] } },
-      });
+      const title = `PromptShield: Fix ${threat.category}`;
+      if (!seenActions.has(title)) {
+        seenActions.add(title);
+        actions.push({
+          title,
+          kind: CodeActionKind.QuickFix,
+          edit: { changes: { [document.uri]: [edit] } },
+        });
+      }
     }
+  }
 
-    return actions;
-  });
+  return actions;
 };
 
 /**

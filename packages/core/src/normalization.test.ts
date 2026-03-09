@@ -9,7 +9,7 @@ describe("scanNormalization", () => {
     expect(threats.length).toBe(1);
     expect(threats[0].category).toBe("NORMALIZATION");
     expect(threats[0].ruleId).toBe("PSN001");
-    expect(threats[0].severity).toBe("HIGH");
+    expect(threats[0].severity).toBe("LOW");
     expect(threats[0].message).toContain(
       "Text changes under Unicode NFKC normalization",
     );
