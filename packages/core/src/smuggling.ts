@@ -71,9 +71,10 @@ const EMPTY_LINK_REGEX = /\[\s*\]\([^)]+\)/g;
  *
  * Many renderers collapse <details> blocks by default and templates are almost never rendered.
  */
-const HIDDEN_CONTAINER_REGEX = /<(details|template)[^>]*>[\s\S]*?<\/\1>/gi;
+const HIDDEN_CONTAINER_REGEX =
+  /<(details|template)\b[^><]{0,200}>[\s\S]{0,100000}?<\/\1>/gi;
 
-const SUMMARY_REGEXP = /<summary[^>]*>[\s\S]*?<\/summary>/i;
+const SUMMARY_REGEXP = /<summary\b[^><]{0,200}>[\s\S]{0,20000}?<\/summary>/i;
 
 /**
  * Invisible characters commonly used for steganography.
@@ -417,10 +418,7 @@ export const scanSmuggling = (
   while ((match = containerRegex.exec(text)) !== null) {
     const offendingText = match[0];
 
-    if (
-      offendingText.startsWith("<details") &&
-      SUMMARY_REGEXP.test(offendingText)
-    )
+    if (/^<details/i.test(offendingText) && SUMMARY_REGEXP.test(offendingText))
       continue;
 
     const start = match.index;
