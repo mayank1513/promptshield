@@ -69,7 +69,7 @@ describe("Tiptap Hover UI", () => {
   });
 
   test("hides tooltip on mouseout", { timeout: 15000 }, async () => {
-    const editor = createEditor("<p>Bad\u200BChar</p>", container);
+    createEditor("<p>Bad\u200BChar</p>", container);
     await sleep(100);
 
     const threatEl = container.querySelector(
