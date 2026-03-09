@@ -2,6 +2,26 @@ import { ThreatCategory, type ThreatReport } from "@promptshield/core";
 import type { Editor } from "@tiptap/core";
 import { extractTextAndMapping, mapTextIndexToPmPos } from "./utils";
 
+/**
+ * Check if a threat can be automatically fixed.
+ */
+export const canFixThreat = (threat: ThreatReport): boolean => {
+  if (threat.category === ThreatCategory.Smuggling) {
+    return (
+      threat.ruleId === "PSS003" || // Hidden Comment
+      threat.ruleId === "PSS004" || // Empty Link
+      threat.readableLabel === "[Hidden Comment]" ||
+      threat.readableLabel === "[Empty Link]"
+    );
+  }
+
+  return [
+    ThreatCategory.Invisible,
+    ThreatCategory.Trojan,
+    ThreatCategory.Normalization,
+  ].includes(threat.category);
+};
+
 export const applyFixToEditor = (editor: Editor, threat: ThreatReport) => {
   const { state, view } = editor;
   const { tr, doc } = state;
@@ -56,7 +76,7 @@ export const applyAllFixesToEditor = (editor: Editor) => {
   const { doc } = state;
 
   // 1. Get current threats from storage
-  const storage = editor.storage["promptshield"];
+  const storage = editor.storage.promptshield;
   if (!storage || !storage.threats || storage.threats.length === 0)
     return false;
 

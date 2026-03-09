@@ -34,3 +34,12 @@ export interface PromptShieldStorage {
 export interface PromptShieldEvents {
   "promptShield:updated": { threats: ThreatReport[] };
 }
+
+declare module "@tiptap/core" {
+  interface Storage {
+    promptshield: PromptShieldStorage;
+  }
+  interface EditorEvents {
+    "promptShield:updated": { threats: ThreatReport[] };
+  }
+}

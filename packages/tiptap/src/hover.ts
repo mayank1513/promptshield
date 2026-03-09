@@ -2,7 +2,7 @@ import type { ThreatReport } from "@promptshield/core";
 import type { Editor } from "@tiptap/core";
 import { Plugin } from "@tiptap/pm/state";
 import type { EditorView } from "@tiptap/pm/view";
-import { applyAllFixesToEditor, applyFixToEditor } from "./fixes";
+import { applyAllFixesToEditor, applyFixToEditor, canFixThreat } from "./fixes";
 import { PromptShieldPluginKey } from "./plugin";
 
 class HoverTooltipView {
@@ -116,10 +116,16 @@ class HoverTooltipView {
             <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
           </button>
           <div class="ps-dropdown-menu" id="ps-quick-fix-menu" style="display: none;">
+            ${
+              canFixThreat(threat)
+                ? `
             <button class="ps-dropdown-item" id="ps-apply-fix">
               <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
               Apply fix
             </button>
+            `
+                : ""
+            }
             <button class="ps-dropdown-item" id="ps-fix-all">
               <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>
               Fix all issues

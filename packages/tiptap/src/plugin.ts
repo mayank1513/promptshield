@@ -24,7 +24,7 @@ export const PromptShieldPlugin = (
     const threats = scanResult.threats;
 
     // 3. Update Storage & Emit Events
-    const storage = editor.storage["promptshield"];
+    const storage = editor.storage.promptshield;
     if (storage) {
       storage.threats = threats;
       storage.threatCount = threats.length;

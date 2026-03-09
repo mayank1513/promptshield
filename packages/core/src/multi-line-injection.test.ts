@@ -1,3 +1,4 @@
+/** biome-ignore-all lint/style/noNonNullAssertion: ok for test files */
 import { describe, expect, it } from "vitest";
 import { scan } from "./core";
 import { ThreatCategory } from "./types";

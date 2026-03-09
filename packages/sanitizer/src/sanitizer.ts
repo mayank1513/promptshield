@@ -88,15 +88,23 @@ const normalizeSegment = (segment: string): string => segment.normalize("NFKC");
  *
  * This function is deterministic and idempotent.
  */
-export const sanitize = (text: string): string =>
-  text
-    .replace(NEWLINE_REGEX, "\n")
-    .replace(BOM_REGEX, "")
-    .replace(INVISIBLE_REGEX, "")
-    .replace(VARIATION_SELECTOR_REGEX, "")
-    .replace(MARKDOWN_COMMENT_REGEX, "")
-    .replace(EMPTY_LINK_REGEX, "")
-    .replace(COMPATIBILITY_NORMALIZE_REGEX, normalizeSegment);
+export const sanitize = (text: string): string => {
+  let prevText: string;
+  let currentText = text.replace(NEWLINE_REGEX, "\n").replace(BOM_REGEX, "");
+
+  // Loop to handle potential "Incomplete multi-character sanitization" (CodeQL)
+  // for comments and empty links that could be nested/crafted to reappear.
+  do {
+    prevText = currentText;
+    currentText = currentText
+      .replace(INVISIBLE_REGEX, "")
+      .replace(VARIATION_SELECTOR_REGEX, "")
+      .replace(MARKDOWN_COMMENT_REGEX, "")
+      .replace(EMPTY_LINK_REGEX, "");
+  } while (currentText !== prevText);
+
+  return currentText.replace(COMPATIBILITY_NORMALIZE_REGEX, normalizeSegment);
+};
 
 /**
  * Strict sanitization mode.

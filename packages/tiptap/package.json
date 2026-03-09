@@ -40,9 +40,11 @@
     "typecheck": "tsc --noEmit"
   },
   "devDependencies": {
-    "@tiptap/extension-document": "^3.20.1",
-    "@tiptap/extension-paragraph": "^3.20.1",
-    "@tiptap/extension-text": "^3.20.1",
+    "@tiptap/core": "^2.0.0 || ^3.0.0",
+    "@tiptap/extension-document": "^2.0.0 || ^3.20.1",
+    "@tiptap/extension-paragraph": "^2.0.0 || ^3.20.1",
+    "@tiptap/extension-text": "^2.0.0 || ^3.20.1",
+    "@tiptap/pm": "^2.0.0 || ^3.0.0",
     "@types/node": "latest",
     "tsup": "latest",
     "typescript": "latest"
@@ -50,9 +52,11 @@
   "dependencies": {
     "@promptshield/core": "workspace:^",
     "@promptshield/ignore": "workspace:^",
-    "@promptshield/sanitizer": "workspace:^",
-    "@tiptap/core": "^3.20.1",
-    "@tiptap/pm": "^3.20.1"
+    "@promptshield/sanitizer": "workspace:^"
+  },
+  "peerDependencies": {
+    "@tiptap/core": "^2.0.0 || ^3.0.0",
+    "@tiptap/pm": "^2.0.0 || ^3.0.0"
   },
   "forge": {
     "aliases": [

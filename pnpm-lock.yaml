@@ -280,22 +280,22 @@ importers:
       '@promptshield/sanitizer':
         specifier: workspace:^
         version: link:../sanitizer
-      '@tiptap/core':
-        specifier: ^3.20.1
-        version: 3.20.1(@tiptap/pm@3.20.1)
-      '@tiptap/pm':
-        specifier: ^3.20.1
-        version: 3.20.1
     devDependencies:
+      '@tiptap/core':
+        specifier: ^2.0.0 || ^3.0.0
+        version: 3.20.1(@tiptap/pm@3.20.1)
       '@tiptap/extension-document':
-        specifier: ^3.20.1
+        specifier: ^2.0.0 || ^3.20.1
         version: 3.20.1(@tiptap/core@3.20.1(@tiptap/pm@3.20.1))
       '@tiptap/extension-paragraph':
-        specifier: ^3.20.1
+        specifier: ^2.0.0 || ^3.20.1
         version: 3.20.1(@tiptap/core@3.20.1(@tiptap/pm@3.20.1))
       '@tiptap/extension-text':
-        specifier: ^3.20.1
+        specifier: ^2.0.0 || ^3.20.1
         version: 3.20.1(@tiptap/core@3.20.1(@tiptap/pm@3.20.1))
+      '@tiptap/pm':
+        specifier: ^2.0.0 || ^3.0.0
+        version: 3.20.1
       '@types/node':
         specifier: latest
         version: 25.3.5

@@ -42,14 +42,15 @@ export function TiptapDemoSection() {
           "prose prose-invert prose-p:my-2 prose-ul:my-2 prose-h2:my-4 prose-h2:text-xl prose-h2:font-bold prose-code:text-[var(--color-ps-accent)] prose-code:bg-[var(--color-ps-accent)]/10 prose-code:px-1 prose-code:rounded max-w-none focus:outline-none min-h-[300px]",
       },
     },
-    onUpdate: ({ editor }) => {
-      const storage = editor.storage.promptshield;
-      if (storage) {
-        setThreatCount(storage.threatCount);
-        setThreats(storage.threats);
-      }
+    onUpdate: () => {
+      // Logic moved to promptShield:updated event for consistency
     },
     onCreate: ({ editor }) => {
+      editor.on("promptShield:updated", ({ threats }) => {
+        setThreatCount(threats.length);
+        setThreats(threats);
+      });
+
       const storage = editor.storage.promptshield;
       if (storage) {
         setThreatCount(storage.threatCount);
