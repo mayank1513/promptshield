@@ -97,7 +97,9 @@ export const applyFixes = (
           // Strip the wrappers, keep content
           output =
             output.slice(0, start) +
-            offending.replace(/<(details|template)[^>]*>(.*?)<\/\1>/gi, "$2") +
+            offending
+              .replace(/<(details|template)\b[^>]{0,2000}>/gi, "")
+              .replace(/<\/(details|template)>/gi, "") +
             output.slice(end);
           fixed.push(threat);
         } else if (
@@ -106,15 +108,11 @@ export const applyFixes = (
         ) {
           // Decode by taking the remainder of the readableLabel and mapping to the offendingText range
           // The label format is usually "[Base64]: <decoded_stuff>"
-          const match = threat.readableLabel.match(/^\[(.*?)\]:\s*(.*)$/);
-          if (match?.[2] && match[2] !== "...") {
-            const decoded = match[2];
-            output = output.slice(0, start) + decoded + output.slice(end);
-            fixed.push(threat);
-          } else {
-            // Cannot reliably recover or it's truncated
-            skipped.push(threat);
-          }
+          output =
+            output.slice(0, start) +
+            (threat.decodedPayload ?? "") +
+            output.slice(end);
+          fixed.push(threat);
         } else {
           skipped.push(threat);
         }
