@@ -2,11 +2,7 @@ import type { ThreatReport } from "@promptshield/core";
 import type { Editor } from "@tiptap/core";
 import { Plugin } from "@tiptap/pm/state";
 import type { EditorView } from "@tiptap/pm/view";
-import {
-  applyAllFixesToEditor,
-  applyFixToEditor,
-  ignoreThreatInEditor,
-} from "./fixes";
+import { applyAllFixesToEditor, applyFixToEditor } from "./fixes";
 import { PromptShieldPluginKey } from "./plugin";
 
 class HoverTooltipView {
@@ -70,63 +66,104 @@ class HoverTooltipView {
     if (!threat) return;
 
     this.tooltip = document.createElement("div");
-    this.tooltip.className = "ps-tooltip-container";
+    this.tooltip.className = "ps-tooltip-container ps-vscode-theme";
+
+    const ruleId = threat.ruleId || "UNKNOWN";
+    const categoryLabel = threat.category.replace(/_/g, " ");
+    const severity = threat.severity.toUpperCase();
+
+    // Shield Icon SVG
+    const shieldIcon = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="ps-icon-shield"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>`;
 
     // Set Tooltip Content
     this.tooltip.innerHTML = `
-      <div class="ps-tooltip-header">
-        <div class="ps-tooltip-title">
-          <span>🛡️ Detect: ${threat.category.replace(/_/g, " ")}</span>
+      <div class="ps-tooltip-content">
+        <div class="ps-tooltip-section ps-tooltip-header">
+          <div class="ps-tooltip-title-row">
+            ${shieldIcon}
+            <span class="ps-tooltip-title">PromptShield: ${categoryLabel} (${ruleId})</span>
+          </div>
         </div>
-        <span class="ps-tooltip-category">${threat.severity}</span>
+
+        <div class="ps-tooltip-section">
+          <div class="ps-tooltip-severity-row">
+            <span class="ps-tooltip-label">Severity:</span>
+            <span class="ps-tooltip-value ps-severity-${threat.severity.toLowerCase()}">${severity}</span>
+          </div>
+          <div class="ps-tooltip-message">${threat.message}</div>
+          <a href="https://promptshield.js.org/docs" target="_blank" class="ps-tooltip-link">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>
+            Learn more
+          </a>
+        </div>
+
+        ${
+          threat.offendingText
+            ? `
+        <div class="ps-tooltip-section ps-tooltip-context">
+          <div class="ps-tooltip-label">Offending Text:</div>
+          <code class="ps-tooltip-code">${threat.offendingText}</code>
+        </div>
+        `
+            : ""
+        }
       </div>
-      <div class="ps-tooltip-message">${threat.message}</div>
-      <div class="ps-tooltip-actions"></div>
+
+      <div class="ps-tooltip-footer">
+        <div class="ps-dropdown">
+          <button class="ps-tooltip-action-btn ps-btn-secondary ps-dropdown-trigger" id="ps-quick-fix-trigger">
+            Quick Fix...
+            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+          </button>
+          <div class="ps-dropdown-menu" id="ps-quick-fix-menu" style="display: none;">
+            <button class="ps-dropdown-item" id="ps-apply-fix">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+              Apply fix
+            </button>
+            <button class="ps-dropdown-item" id="ps-fix-all">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>
+              Fix all issues
+            </button>
+          </div>
+        </div>
+      </div>
     `;
 
-    // Actions
-    const actionsContainer = this.tooltip.querySelector(".ps-tooltip-actions")!;
+    // Event Listeners for Actions
+    const trigger = this.tooltip.querySelector("#ps-quick-fix-trigger");
+    const menu = this.tooltip.querySelector(
+      "#ps-quick-fix-menu",
+    ) as HTMLElement;
+    const applyFixBtn = this.tooltip.querySelector("#ps-apply-fix");
+    const fixAllBtn = this.tooltip.querySelector("#ps-fix-all");
 
-    // Try to provide a reliable fix if possible
-    const canQuickFix = [
-      "INVISIBLE_CHAR",
-      "TROJAN_SOURCE",
-      "NORMALIZATION",
-      "SMUGGLING",
-    ].includes(threat.category);
+    if (trigger && menu) {
+      trigger.addEventListener("click", (e) => {
+        e.stopPropagation();
+        const isVisible = menu.style.display === "block";
+        menu.style.display = isVisible ? "none" : "block";
+      });
 
-    if (canQuickFix && threat.suggestion) {
-      const fixBtn = document.createElement("button");
-      fixBtn.className = "ps-tooltip-button";
-      fixBtn.innerText = "✨ Quick Fix: " + threat.suggestion;
-      fixBtn.onclick = () => {
-        applyFixToEditor(this.editor, threat);
-        this.hideTooltip();
+      // Close menu when clicking outside
+      const closeMenu = () => {
+        menu.style.display = "none";
       };
-      actionsContainer.appendChild(fixBtn);
+
+      document.addEventListener("click", closeMenu, { once: true });
     }
 
-    // Ignore button
-    const ignoreBtn = document.createElement("button");
-    ignoreBtn.className = "ps-tooltip-button ps-tooltip-button-secondary";
-    ignoreBtn.innerText = "👀 Ignore on this line";
-    ignoreBtn.onclick = () => {
-      ignoreThreatInEditor(this.editor, threat);
-      this.hideTooltip();
-    };
-    actionsContainer.appendChild(ignoreBtn);
+    if (applyFixBtn) {
+      applyFixBtn.addEventListener("click", () => {
+        applyFixToEditor(this.editor, threat);
+        this.hideTooltip();
+      });
+    }
 
-    // Fix All Button (if there are other threats)
-    const storage = this.editor.storage["promptshield"];
-    if (storage && storage.threatCount > 1) {
-      const fixAllBtn = document.createElement("button");
-      fixAllBtn.className = "ps-tooltip-button ps-tooltip-button-accent";
-      fixAllBtn.innerText = `🛡️ Fix All (${storage.threatCount}) Issues`;
-      fixAllBtn.onclick = () => {
+    if (fixAllBtn) {
+      fixAllBtn.addEventListener("click", () => {
         applyAllFixesToEditor(this.editor);
         this.hideTooltip();
-      };
-      actionsContainer.appendChild(fixAllBtn);
+      });
     }
 
     // Document styling prevents it from leaving when hovering

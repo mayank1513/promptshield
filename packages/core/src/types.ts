@@ -110,7 +110,7 @@ export interface Location {
  * A ThreatReport represents a **span**, not a single character.
  * Adjacent suspicious characters should be grouped into one report.
  */
-export interface ThreatReport {
+export interface ThreatReportWithoutLocation {
   /**
    * Stable rule identifier.
    *
@@ -179,12 +179,6 @@ export interface ThreatReport {
    * https://promptshield.js.org/docs/detectors/invisible-chars#PSU001
    */
   referenceUrl: string;
-
-  /**
-   * Indicates whether this threat was suppressed
-   * by an ignore directive.
-   */
-  suppressed?: boolean;
 }
 
 /**
@@ -227,7 +221,8 @@ export interface ThreatReport {
  * }
  * ```
  */
-export interface ThreatReportWithRange extends Omit<ThreatReport, "range"> {
+export interface ThreatReport
+  extends Omit<ThreatReportWithoutLocation, "range"> {
   range: {
     /** Start position of the detected threat span. */
     start: Location;
@@ -236,6 +231,18 @@ export interface ThreatReportWithRange extends Omit<ThreatReport, "range"> {
     end: Location;
   };
 }
+
+/**
+ * Predicate used by the scanner to determine whether a detected
+ * threat span should be ignored.
+ *
+ * @param start - Absolute 0-based character index of the threat start (inclusive).
+ * @param end - Absolute 0-based character index of the threat end (exclusive).
+ *
+ * The predicate should return `true` only if the **entire span**
+ * falls within an ignore range.
+ */
+export type IgnoreChecker = (start: number, end: number) => boolean;
 
 /**
  * Scanner configuration options.
@@ -292,6 +299,13 @@ export interface ScanOptions {
    * @default false
    */
   disableInjectionPatterns?: boolean;
+
+  /**
+   * Ignore checker function.
+   *
+   * @default () => false
+   */
+  ignoreChecker?: IgnoreChecker;
 }
 
 /**
@@ -326,7 +340,10 @@ export interface ScanContext {
  * - side-effect free
  * - synchronous
  */
-export type Detector = (text: string, options: ScanOptions) => ThreatReport[];
+export type Detector = (
+  text: string,
+  options: ScanOptions,
+) => ThreatReportWithoutLocation[];
 
 /**
  * Result returned by the scanner.

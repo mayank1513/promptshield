@@ -9,7 +9,7 @@ export const applyFixToEditor = (editor: Editor, threat: ThreatReport) => {
   // We need to map the threat index back to the current document state
   // to ensure positions are correct right before we apply the transaction
   const { mapping } = extractTextAndMapping(doc);
-  const pmStart = mapTextIndexToPmPos(threat.loc.index, mapping);
+  const pmStart = mapTextIndexToPmPos(threat.range.start.index, mapping);
 
   if (pmStart === null) return false;
 
@@ -51,37 +51,6 @@ export const applyFixToEditor = (editor: Editor, threat: ThreatReport) => {
   return applied;
 };
 
-export const ignoreThreatInEditor = (editor: Editor, threat: ThreatReport) => {
-  const { state, view } = editor;
-  const { tr, doc } = state;
-
-  const { mapping } = extractTextAndMapping(doc);
-  const pmStart = mapTextIndexToPmPos(threat.loc.index, mapping);
-
-  if (pmStart === null) return false;
-
-  // Find the immediate parent block node that contains the threat
-  const $pos = doc.resolve(pmStart);
-  let depth = $pos.depth;
-  while (depth > 0 && !$pos.node(depth).isBlock) {
-    depth--;
-  }
-
-  const blockStart = $pos.before(depth);
-
-  // Insert an ignore comment before the block
-  const p = state.schema.nodes["paragraph"].create(
-    null,
-    state.schema.text("promptshield-ignore"),
-  );
-
-  // Insert before the parent block
-  tr.insert(blockStart, p);
-
-  view.dispatch(tr);
-  return true;
-};
-
 export const applyAllFixesToEditor = (editor: Editor) => {
   const { state, view } = editor;
   const { doc } = state;
@@ -91,7 +60,7 @@ export const applyAllFixesToEditor = (editor: Editor) => {
   if (!storage || !storage.threats || storage.threats.length === 0)
     return false;
 
-  const threats = storage.threats;
+  const threats = storage.threats as ThreatReport[];
 
   // 2. Extract text
   const { text } = extractTextAndMapping(doc);
@@ -111,13 +80,18 @@ export const applyAllFixesToEditor = (editor: Editor) => {
   // However, TipTap has many nodes. Replacing text might lose structure.
 
   // A safer way is to apply fixes one by one in reverse order to keep positions valid.
-  const sortedThreats = [...threats].sort((a, b) => b.loc.index - a.loc.index);
+  const sortedThreats = [...threats].sort(
+    (a, b) => b.range.start.index - a.range.start.index,
+  );
   const tr = state.tr;
   let applied = false;
 
   for (const threat of sortedThreats) {
     const { mapping: currentMapping } = extractTextAndMapping(tr.doc);
-    const pmStart = mapTextIndexToPmPos(threat.loc.index, currentMapping);
+    const pmStart = mapTextIndexToPmPos(
+      threat.range.start.index,
+      currentMapping,
+    );
     if (pmStart === null) continue;
 
     const pmEnd = pmStart + (threat.offendingText?.length || 0);

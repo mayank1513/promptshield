@@ -5,10 +5,6 @@ import type { TextDocument } from "vscode-languageserver-textdocument";
 import { getIconMarkdown, ICONS } from "./icons";
 
 /**
- * Redundant file --- will explore later. We have move hover UI responsibility to the extension.
- */
-
-/**
  * Provide hover information for threats at the given position.
  */
 export const getHover = (
@@ -16,25 +12,27 @@ export const getHover = (
   position: Position,
 ): Hover | null => {
   const text = document.getText();
-  const result = scan(text); // Optimization: rely on debounce/cache in real implementation?
-  // For now, re-scan is fast (~10ms for 100kb).
+  const { threats: rawThreats } = scan(text);
 
-  const { threats } = filterThreats(text, result.threats);
+  // Enrich with line/column information
+
+  const { threats } = filterThreats(text, rawThreats);
 
   // Find threats intersecting the position
   const activeThreats = threats.filter((t) => {
-    const start = document.positionAt(t.loc.index);
-    const end = document.positionAt(t.loc.index + t.offendingText.length);
+    const { start, end } = t.range;
 
-    // Check if position is within [start, end)
-    // using simple line/char comparison
-    if (position.line < start.line || position.line > end.line) return false;
-    if (position.line === start.line && position.character < start.character)
-      return false;
-    if (position.line === end.line && position.character >= end.character)
-      return false;
+    // Check if position is within [start, end] range
+    const isAfterStart =
+      position.line > start.line - 1 ||
+      (position.line === start.line - 1 &&
+        position.character >= start.column - 1);
 
-    return true;
+    const isBeforeEnd =
+      position.line < end.line - 1 ||
+      (position.line === end.line - 1 && position.character <= end.column - 1);
+
+    return isAfterStart && isBeforeEnd;
   });
 
   if (activeThreats.length === 0) return null;

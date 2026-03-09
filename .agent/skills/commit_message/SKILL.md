@@ -54,5 +54,5 @@ This skill allows you to generate a conventional commit message for the currentl
         - Use for breaking changes (start with `BREAKING CHANGE:`) or closing issues (e.g., `Closes #123`).
 
 5.  **Output**
-    - Present the generated commit message to the user for review.
+    - Present the generated commit message in a text code block to the user for review.
 

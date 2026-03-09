@@ -19,7 +19,7 @@
         "default": "./dist/index.js"
       }
     },
-    "./style.css": "./src/style.css",
+    "./style.css": "./dist/style.css",
     "./package.json": "./package.json"
   },
   "repository": {

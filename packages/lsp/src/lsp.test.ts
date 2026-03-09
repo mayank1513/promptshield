@@ -25,11 +25,14 @@ const mocks = vi.hoisted(() => {
     },
     sendDiagnostics: vi.fn(),
     onDidChangeConfiguration: vi.fn(),
+    onDidChangeWatchedFiles: vi.fn(),
   };
 
   const mockdocuments = {
     listen: vi.fn(),
     onDidChangeContent: vi.fn(),
+    onDidOpen: vi.fn(),
+    onDidSave: vi.fn(),
     get: vi.fn(),
   };
 
@@ -172,7 +175,10 @@ describe("LSP Server", () => {
           severity: "HIGH",
           message: "threat",
           offendingText: "test",
-          loc: { line: 1, column: 1, index: 0 }, // Lines are 1-based in report, 0-based in LSP/doc
+          range: {
+            start: { line: 1, column: 1, index: 0 },
+            end: { line: 1, column: 1, index: 0 },
+          }, // Lines are 1-based in report, 0-based in LSP/doc
         },
       ],
     } as any);
@@ -214,14 +220,20 @@ describe("LSP Server", () => {
           severity: "HIGH",
           message: "threat 1",
           offendingText: "test",
-          loc: { line: 1, column: 1, index: 0 },
+          range: {
+            start: { line: 1, column: 1, index: 0 },
+            end: { line: 1, column: 1, index: 0 },
+          },
         },
         {
           category: "TEST",
           severity: "HIGH",
           message: "threat 2",
           offendingText: "content",
-          loc: { line: 1, column: 6, index: 5 },
+          range: {
+            start: { line: 1, column: 6, index: 5 },
+            end: { line: 1, column: 6, index: 5 },
+          },
         },
       ],
     } as any);

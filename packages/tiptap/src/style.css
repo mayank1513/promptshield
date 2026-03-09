@@ -25,81 +25,201 @@
   --ps-threat-bg: rgba(25, 118, 210, 0.15);
 }
 
-/* Tooltip container styling */
-.ps-tooltip-container {
-  font-family: system-ui, -apple-system, sans-serif;
-  background-color: #1e1e1e;
-  border: 1px solid #333;
-  color: #fff;
-  padding: 12px;
-  border-radius: 6px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+/* Tooltip container styling - VSCode Theme */
+.ps-tooltip-container.ps-vscode-theme {
+  font-family:
+    -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial,
+    sans-serif;
+  background-color: #252526;
+  border: 1px solid #454545;
+  color: #cccccc;
+  padding: 0;
+  border-radius: 4px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.4);
   font-size: 13px;
-  max-width: 300px;
+  max-width: 450px;
+  min-width: 300px;
   pointer-events: auto;
   z-index: 1000;
+  overflow: hidden;
+}
+
+.ps-tooltip-content {
+  padding: 12px;
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 12px;
+}
+
+.ps-tooltip-section {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
 }
 
 .ps-tooltip-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  border-bottom: 1px solid #333;
-  padding-bottom: 6px;
+  border-bottom: 1px solid #3c3c3c;
+  padding-bottom: 8px;
+  margin-bottom: 4px;
 }
 
-.ps-tooltip-title {
+.ps-tooltip-title-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
   font-weight: 600;
+  color: #ffffff;
+}
+
+.ps-icon-shield {
+  color: #007acc;
+  flex-shrink: 0;
+}
+
+.ps-tooltip-severity-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+}
+
+.ps-tooltip-label {
+  color: #aaaaaa;
+  font-weight: 500;
+}
+
+.ps-tooltip-value {
+  font-weight: 700;
+  letter-spacing: 0.5px;
+}
+
+.ps-tooltip-value.ps-severity-critical {
+  color: #f14c4c;
+}
+.ps-tooltip-value.ps-severity-high {
+  color: #d16d0e;
+}
+.ps-tooltip-value.ps-severity-medium {
+  color: #cca700;
+}
+.ps-tooltip-value.ps-severity-low {
+  color: #3794ff;
+}
+
+.ps-tooltip-message {
+  line-height: 1.5;
+  color: #cccccc;
+  font-size: 13px;
+}
+
+.ps-tooltip-link {
+  color: #3794ff;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+  margin-top: 4px;
+}
+
+.ps-tooltip-link:hover {
+  text-decoration: underline;
+}
+
+.ps-tooltip-context {
+  background-color: #1e1e1e;
+  padding: 8px;
+  border-radius: 4px;
+  border-left: 3px solid #3c3c3c;
+}
+
+.ps-tooltip-code {
+  font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+  font-size: 12px;
+  color: #d4d4d4;
+  white-space: pre-wrap;
+  word-break: break-all;
+}
+
+.ps-tooltip-footer {
+  background-color: #1e1e1e;
+  padding: 8px 12px;
+  display: flex;
+  gap: 8px;
+  border-top: 1px solid #3c3c3c;
+  position: relative;
+}
+
+.ps-dropdown {
+  position: relative;
+  display: inline-block;
+}
+
+.ps-dropdown-trigger {
   display: flex;
   align-items: center;
   gap: 6px;
 }
 
-.ps-tooltip-category {
-  font-size: 11px;
-  background: #333;
-  padding: 2px 6px;
+.ps-dropdown-menu {
+  position: absolute;
+  bottom: 100%;
+  left: 0;
+  background-color: #252526;
+  border: 1px solid #454545;
   border-radius: 4px;
-  color: #bbb;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.4);
+  z-index: 1001;
+  min-width: 160px;
+  margin-bottom: 4px;
+  padding: 4px 0;
 }
 
-.ps-tooltip-message {
-  line-height: 1.4;
-  color: #e0e0e0;
-}
-
-.ps-tooltip-actions {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  margin-top: 4px;
-}
-
-.ps-tooltip-button {
-  background: #007acc;
-  color: white;
+.ps-dropdown-item {
+  width: 100%;
+  padding: 6px 12px;
   border: none;
-  padding: 6px 10px;
-  border-radius: 4px;
-  cursor: pointer;
+  background: transparent;
+  color: #cccccc;
   text-align: left;
   font-size: 12px;
-  transition: background 0.2s ease;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: background 0.1s;
 }
 
-.ps-tooltip-button:hover {
-  background: #005999;
+.ps-dropdown-item:hover {
+  background-color: #37373d;
+  color: #ffffff;
 }
 
-.ps-tooltip-button-secondary {
-  background: transparent;
-  color: #bbb;
+.ps-dropdown-item svg {
+  flex-shrink: 0;
+  opacity: 0.8;
 }
 
-.ps-tooltip-button-secondary:hover {
-  background: rgba(255, 255, 255, 0.1);
-  color: #fff;
+.ps-tooltip-action-btn {
+  border: none;
+  padding: 4px 12px;
+  border-radius: 2px;
+  cursor: pointer;
+  font-size: 11px;
+  font-weight: 500;
+  transition: opacity 0.2s;
+}
+
+.ps-tooltip-action-btn:hover {
+  opacity: 0.85;
+}
+
+.ps-btn-primary {
+  background-color: #007acc;
+  color: #ffffff;
+}
+
+.ps-btn-secondary {
+  background-color: #3a3d41;
+  color: #cccccc;
 }

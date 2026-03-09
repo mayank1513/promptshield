@@ -24,12 +24,6 @@ export interface PromptShieldOptions extends ScanOptions {
    * @default true
    */
   hoverUi?: boolean;
-
-  /**
-   * Whether to disable inline ignore directive parsing (`promptshield-ignore`).
-   * @default false
-   */
-  noInlineIgnore?: boolean;
 }
 
 export interface PromptShieldStorage {

@@ -4,7 +4,13 @@ import { scanInvisibleChars } from "./invisible";
 import { scanNormalization } from "./normalization";
 import { scanSmuggling } from "./smuggling";
 import { scanTrojanSource } from "./trojan";
-import type { Detector, ScanOptions, ScanResult, ThreatReport } from "./types";
+import type {
+  Detector,
+  ScanOptions,
+  ScanResult,
+  ThreatReportWithoutLocation,
+} from "./types";
+import { enrichWithLocation } from "./utils";
 
 /**
  * Core scanning entry point.
@@ -28,7 +34,7 @@ import type { Detector, ScanOptions, ScanResult, ThreatReport } from "./types";
  * ```
  */
 export const scan = (text: string, options: ScanOptions = {}): ScanResult => {
-  const threats: ThreatReport[] = [];
+  const threats: ThreatReportWithoutLocation[] = [];
 
   const detectors: Detector[] = [];
 
@@ -49,7 +55,7 @@ export const scan = (text: string, options: ScanOptions = {}): ScanResult => {
   }
 
   return {
-    threats,
+    threats: enrichWithLocation(threats, text),
     isClean: threats.length === 0,
   };
 };

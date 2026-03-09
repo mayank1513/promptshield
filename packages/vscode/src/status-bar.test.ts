@@ -109,8 +109,17 @@ describe("PromptShieldStatusBar", () => {
 
     // Simulate what would be returned exactly by vscode.languages.getDiagnostics()
     vi.mocked(vscode.languages.getDiagnostics).mockReturnValue([
-      [mockUriNormal, [{ source: "PromptShield" }, { source: "Other" }] as any],
-      [mockUriArtifact, [{ source: "PromptShield" }] as any],
+      [
+        mockUriNormal,
+        [
+          { source: "PromptShield", data: [{ severity: "HIGH" }] },
+          { source: "Other" },
+        ] as any,
+      ],
+      [
+        mockUriArtifact,
+        [{ source: "PromptShield", data: [{ severity: "LOW" }] }] as any,
+      ],
     ] as any);
 
     // Call private method directly for testing side-effects against getDiagnostics

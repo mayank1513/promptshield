@@ -1,14 +1,52 @@
 /** biome-ignore-all lint/suspicious/noAssignInExpressions: iterating over regex matches */
-import { type ScanOptions, ThreatCategory, type ThreatReport } from "./types";
+import {
+  type ScanOptions,
+  ThreatCategory,
+  type ThreatReportWithoutLocation,
+} from "./types";
 
 /**
- * Regex for Base64-like payloads.
+ * Minimum Base64 payload size worth decoding.
+ */
+const BASE64_MIN_LENGTH = 24;
+
+/**
+ * Upper bound to avoid decoding extremely large blobs.
+ */
+const BASE64_MAX_LENGTH = 4096;
+
+/**
+ * Base64 candidate detection.
  *
- * Matches sufficiently long Base64 sequences likely to contain
- * human/llm-readable instructions rather than binary data or hashes.
+ * Supports both:
+ *
+ * 1. Continuous Base64
+ * 2. Whitespace-broken Base64 (common evasion technique)
+ *
+ * Example evasion:
+ *
+ * SGVsbG8g
+ * d29ybGQ=
+ *
+ * The detector strips whitespace before decoding.
+ *
+ * Also supports URL-safe Base64 variants (- and _).
  */
 const BASE64_REGEX =
-  /(?:[A-Za-z0-9+/]{4}){8,}(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=)?/g;
+  /(?:[A-Za-z0-9+/_-]{4}[\s\u200B-\u200D\u2060\uFEFF]*){8,}(?:[A-Za-z0-9+/_-]{2}==|[A-Za-z0-9+/_-]{3}=)?/g;
+
+/**
+ * Hex-encoded payload detection.
+ *
+ * Attackers frequently encode instructions using hex representation.
+ *
+ * Example:
+ *
+ * 69676e6f72652070726576696f757320696e737472756374696f6e73
+ *
+ * → "ignore previous instructions"
+ */
+const HEX_REGEX = /\b(?:[0-9a-fA-F]{2}){12,}\b/g;
 
 /**
  * Detect hidden Markdown comments.
@@ -29,10 +67,33 @@ const MARKDOWN_COMMENT_REGEX = /<!--[\s\S]*?-->/g;
 const EMPTY_LINK_REGEX = /\[\s*\]\([^)]+\)/g;
 
 /**
- * Detect runs of invisible characters potentially used for binary
- * steganography encoding.
+ * Detect hidden HTML containers.
+ *
+ * Many renderers collapse <details> blocks by default and templates are almost never rendered.
+ */
+const HIDDEN_CONTAINER_REGEX = /<(details|template)[^>]*>[\s\S]*?<\/\1>/gi;
+
+const SUMMARY_REGEXP = /<summary[^>]*>[\s\S]*?<\/summary>/i;
+
+/**
+ * Invisible characters commonly used for steganography.
  */
 const STEG_REGEX = /([\u200B-\u200D\u2060\uFEFF\u3164\uFFA0]+)/g;
+
+/**
+ * Browser-safe Base64 decoding.
+ *
+ * Automatically switches between Buffer (Node) and atob (browser).
+ */
+const decodeBase64 = (value: string): string => {
+  if (typeof Buffer !== "undefined") {
+    return Buffer.from(value, "base64").toString("utf8");
+  }
+
+  const binary = atob(value);
+  const bytes = Uint8Array.from(binary, (c) => c.charCodeAt(0));
+  return new TextDecoder().decode(bytes);
+};
 
 /**
  * Attempts Base64 decoding and verifies printable ASCII ratio.
@@ -43,16 +104,58 @@ const STEG_REGEX = /([\u200B-\u200D\u2060\uFEFF\u3164\uFFA0]+)/g;
  */
 const decodeBase64IfLikely = (value: string): string | null => {
   try {
-    const decoded = Buffer.from(value, "base64").toString("utf8");
+    const cleaned = value.replace(/\s+/g, "");
+
+    if (
+      cleaned.length < BASE64_MIN_LENGTH ||
+      cleaned.length > BASE64_MAX_LENGTH
+    )
+      return null;
+
+    const decoded = decodeBase64(cleaned);
     if (!decoded) return null;
 
     let printable = 0;
+
     for (const c of decoded) {
       const code = c.charCodeAt(0);
       if (code >= 32 && code <= 126) printable++;
     }
 
     const ratio = printable / decoded.length;
+
+    return ratio >= 0.7 ? decoded : null;
+  } catch {
+    return null;
+  }
+};
+
+/**
+ * Attempts hex decoding and verifies printable ASCII ratio.
+ *
+ * Uses browser-safe decoding.
+ */
+const decodeHexIfLikely = (value: string): string | null => {
+  try {
+    if (value.length < BASE64_MIN_LENGTH) return null;
+
+    const bytes = new Uint8Array(value.length / 2);
+
+    for (let i = 0; i < bytes.length; i++) {
+      bytes[i] = parseInt(value.slice(i * 2, i * 2 + 2), 16);
+    }
+
+    const decoded = new TextDecoder().decode(bytes);
+
+    let printable = 0;
+
+    for (const c of decoded) {
+      const code = c.charCodeAt(0);
+      if (code >= 32 && code <= 126) printable++;
+    }
+
+    const ratio = printable / decoded.length;
+
     return ratio >= 0.7 ? decoded : null;
   } catch {
     return null;
@@ -62,28 +165,30 @@ const decodeBase64IfLikely = (value: string): string | null => {
 /**
  * Smuggling detector.
  *
- * Detects techniques used to conceal instructions or data inside text.
+ * Detects techniques used to conceal instructions or payloads
+ * inside otherwise harmless-looking text.
  *
  * Rules emitted:
  *
  * PSS001 — Invisible-character steganography (HIGH)
  * PSS002 — Base64 payload with readable content (MEDIUM)
+ * PSS006 — Hex-encoded payload with readable content (MEDIUM)
  * PSS003 — Hidden Markdown comment (LOW)
  * PSS004 — Invisible Markdown link (LOW)
+ * PSS005 — Hidden HTML container (LOW)
  *
  * Span semantics:
- *   offendingText = entire suspicious region
- *   decodedPayload = recovered payload when available
  *
- * Context is intentionally mutable so detectors can share `lineOffsets`.
+ * offendingText = suspicious region
+ * decodedPayload = recovered payload when available
  */
 export const scanSmuggling = (
   text: string,
   options: ScanOptions = {},
-): ThreatReport[] => {
+): ThreatReportWithoutLocation[] => {
   if (options.minSeverity === "CRITICAL") return [];
 
-  const threats: ThreatReport[] = [];
+  const threats: ThreatReportWithoutLocation[] = [];
   let match: RegExpExecArray | null;
 
   /**
@@ -91,23 +196,29 @@ export const scanSmuggling = (
    * PSS001 — Invisible-character steganography (HIGH)
    * --------------------------------------------------
    */
+
   const stegRegex = new RegExp(STEG_REGEX);
 
   while ((match = stegRegex.exec(text)) !== null) {
     const captured = match[0];
 
-    if (captured.length < 8) continue;
-    if (captured.length > 4096) continue;
+    if (captured.length < 8 || captured.length > BASE64_MAX_LENGTH) continue;
 
-    const distinctChars = Array.from(new Set(captured.split("")));
-    if (distinctChars.length < 2 || distinctChars.length > 3) continue;
+    const distinctChars = Array.from(new Set([...captured]));
 
-    const [bit0, bit1] = distinctChars;
+    /**
+     * Support small alphabets used for binary encoding.
+     */
+    if (distinctChars.length < 2 || distinctChars.length > 4) continue;
 
-    const permutations = [
-      { zero: bit0, one: bit1 },
-      { zero: bit1, one: bit0 },
-    ];
+    const permutations = [];
+
+    for (let i = 0; i < distinctChars.length; i++) {
+      for (let j = 0; j < distinctChars.length; j++) {
+        if (i !== j)
+          permutations.push({ zero: distinctChars[i], one: distinctChars[j] });
+      }
+    }
 
     for (const { zero, one } of permutations) {
       let binary = "";
@@ -124,29 +235,35 @@ export const scanSmuggling = (
         if (byte.length !== 8) continue;
 
         const code = parseInt(byte, 2);
+
         if (code >= 32 && code <= 126) {
           decoded += String.fromCharCode(code);
         }
       }
 
       if (decoded.length >= 3) {
+        const start = match.index;
+        const end = start + captured.length;
         threats.push({
           ruleId: "PSS001",
           category: ThreatCategory.Smuggling,
           severity: "HIGH",
           message:
             "Detected hidden steganography message encoded in invisible characters.",
-          range: { start: match.index, end: match.index + captured.length },
+          range: { start, end },
           offendingText: captured,
           decodedPayload: decoded,
-          readableLabel: `[Hidden]: ${decoded.slice(0, 50)}...`,
+          readableLabel: `[Hidden]: ${decoded.slice(0, 120)}...`,
           suggestion:
             "Invisible-character encoding detected. Inspect hidden content.",
           referenceUrl:
             "https://promptshield.js.org/docs/detectors/smuggling#PSS001",
         });
 
-        if (options.stopOnFirstThreat) return threats;
+        if (options.stopOnFirstThreat && !options.ignoreChecker?.(start, end)) {
+          return threats;
+        }
+
         break;
       }
     }
@@ -159,48 +276,93 @@ export const scanSmuggling = (
    * PSS002 — Base64 payload detection (MEDIUM)
    * --------------------------------------------------
    */
+
   const b64Regex = new RegExp(BASE64_REGEX);
 
   while ((match = b64Regex.exec(text)) !== null) {
     const candidate = match[0];
-    if (candidate.length < 24) continue;
 
     const decoded = decodeBase64IfLikely(candidate);
     if (!decoded) continue;
+
+    const start = match.index;
+    const end = start + candidate.length;
 
     threats.push({
       ruleId: "PSS002",
       category: ThreatCategory.Smuggling,
       severity: "MEDIUM",
       message: "Detected Base64 payload containing readable content.",
-      range: { start: match.index, end: match.index + candidate.length },
+      range: { start, end },
       offendingText: candidate,
       decodedPayload: decoded,
-      readableLabel: `[Base64]: ${decoded.slice(0, 50)}...`,
+      readableLabel: `[Base64]: ${decoded.slice(0, 120)}...`,
       suggestion: "Decoded Base64 contains readable text. Inspect payload.",
       referenceUrl:
         "https://promptshield.js.org/docs/detectors/smuggling#PSS002",
     });
 
-    if (options.stopOnFirstThreat) return threats;
+    if (options.stopOnFirstThreat && !options.ignoreChecker?.(start, end)) {
+      return threats;
+    }
+  }
+
+  /**
+   * --------------------------------------------------
+   * PSS006 — Hex payload detection
+   * --------------------------------------------------
+   */
+
+  const hexRegex = new RegExp(HEX_REGEX);
+
+  while ((match = hexRegex.exec(text)) !== null) {
+    const candidate = match[0];
+
+    const decoded = decodeHexIfLikely(candidate);
+    if (!decoded) continue;
+
+    const start = match.index;
+    const end = start + candidate.length;
+
+    threats.push({
+      ruleId: "PSS006",
+      category: ThreatCategory.Smuggling,
+      severity: "MEDIUM",
+      message: "Detected hex-encoded payload containing readable content.",
+      range: { start, end },
+      offendingText: candidate,
+      decodedPayload: decoded,
+      readableLabel: `[HEX]: ${decoded.slice(0, 120)}...`,
+      suggestion: "Decoded hex contains readable text. Inspect payload.",
+      referenceUrl:
+        "https://promptshield.js.org/docs/detectors/smuggling#PSS006",
+    });
+
+    if (options.stopOnFirstThreat && !options.ignoreChecker?.(start, end)) {
+      return threats;
+    }
   }
 
   if (options.minSeverity === "MEDIUM") return threats;
 
   /**
    * --------------------------------------------------
-   * PSS003 — Hidden Markdown comments (LOW)
+   * PSS003 — Hidden Markdown comments
    * --------------------------------------------------
    */
+
   const commentRegex = new RegExp(MARKDOWN_COMMENT_REGEX);
 
   while ((match = commentRegex.exec(text)) !== null) {
+    const start = match.index;
+    const end = start + match[0].length;
+
     threats.push({
       ruleId: "PSS003",
       category: ThreatCategory.Smuggling,
       severity: "LOW",
       message: "Detected hidden Markdown comment.",
-      range: { start: match.index, end: match.index + match[0].length },
+      range: { start, end },
       offendingText: match[0],
       readableLabel: "[Hidden Comment]",
       suggestion:
@@ -209,23 +371,29 @@ export const scanSmuggling = (
         "https://promptshield.js.org/docs/detectors/smuggling#PSS003",
     });
 
-    if (options.stopOnFirstThreat) return threats;
+    if (options.stopOnFirstThreat && !options.ignoreChecker?.(start, end)) {
+      return threats;
+    }
   }
 
   /**
    * --------------------------------------------------
-   * PSS004 — Empty Markdown links (LOW)
+   * PSS004 — Invisible Markdown links (LOW)
    * --------------------------------------------------
    */
+
   const linkRegex = new RegExp(EMPTY_LINK_REGEX);
 
   while ((match = linkRegex.exec(text)) !== null) {
+    const start = match.index;
+    const end = start + match[0].length;
+
     threats.push({
       ruleId: "PSS004",
       category: ThreatCategory.Smuggling,
       severity: "LOW",
       message: "Detected empty Markdown link (invisible in rendered output).",
-      range: { start: match.index, end: match.index + match[0].length },
+      range: { start, end },
       offendingText: match[0],
       readableLabel: "[Empty Link]",
       suggestion: "Empty links can be used to hide URLs or data.",
@@ -233,7 +401,48 @@ export const scanSmuggling = (
         "https://promptshield.js.org/docs/detectors/smuggling#PSS004",
     });
 
-    if (options.stopOnFirstThreat) return threats;
+    if (options.stopOnFirstThreat && !options.ignoreChecker?.(start, end)) {
+      return threats;
+    }
+  }
+
+  /**
+   * --------------------------------------------------
+   * PSS005 — Hidden HTML container
+   * --------------------------------------------------
+   */
+
+  const containerRegex = new RegExp(HIDDEN_CONTAINER_REGEX);
+
+  while ((match = containerRegex.exec(text)) !== null) {
+    const offendingText = match[0];
+
+    if (
+      offendingText.startsWith("<details") &&
+      SUMMARY_REGEXP.test(offendingText)
+    )
+      continue;
+
+    const start = match.index;
+    const end = start + offendingText.length;
+
+    threats.push({
+      ruleId: "PSS005",
+      category: ThreatCategory.Smuggling,
+      severity: "LOW",
+      message: "Detected hidden HTML container potentially concealing content.",
+      range: { start, end },
+      offendingText,
+      readableLabel: "[Hidden HTML]",
+      suggestion:
+        "Hidden containers may conceal instructions from rendered output.",
+      referenceUrl:
+        "https://promptshield.js.org/docs/detectors/smuggling#PSS005",
+    });
+
+    if (options.stopOnFirstThreat && !options.ignoreChecker?.(start, end)) {
+      return threats;
+    }
   }
 
   return threats;

@@ -59,7 +59,7 @@ export function TiptapDemoSection() {
   });
 
   return (
-    <section className="py-24 bg-[var(--color-ps-bg)] relative overflow-hidden border-t border-[var(--color-ps-border)]">
+    <section className="py-20 bg-[var(--color-ps-secondary)]">
       <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-red-500/5 blur-[120px] rounded-full pointer-events-none" />
 
       <div className="mx-auto max-w-6xl px-4 relative z-10">
@@ -80,7 +80,7 @@ export function TiptapDemoSection() {
 
         <div className="grid lg:grid-cols-[1fr_minmax(300px,350px)] gap-8">
           {/* Editor Container */}
-          <div className="bg-[#111111] border border-[var(--color-ps-border)] rounded-2xl overflow-hidden shadow-2xl flex flex-col h-full min-h-[500px]">
+          <div className="bg-[#111111] border border-[var(--color-ps-border)] rounded-2xl overflow-hidden shadow-2xl flex flex-col h-full min-h-[500px] dark">
             <div className="bg-[#161B22] border-b border-[var(--color-ps-border)] px-4 py-3 flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <div className="flex gap-1.5">
@@ -106,7 +106,7 @@ export function TiptapDemoSection() {
                 )}
               </div>
             </div>
-            <div className="p-6 md:p-8 flex-1 bg-[#0d0d0d] overflow-y-auto">
+            <div className="p-6 md:p-8 flex-1 bg-[#0d0d0d] overflow-y-auto max-h-[770px]">
               <EditorContent editor={editor} />
             </div>
           </div>
@@ -114,7 +114,7 @@ export function TiptapDemoSection() {
           {/* Sidebar */}
           <div className="flex flex-col gap-6">
             <div className="bg-[var(--color-ps-card)] border border-[var(--color-ps-border)] rounded-xl p-5 shadow-lg">
-              <h3 className="font-semibold text-lg flex items-center gap-2 mb-4 text-white">
+              <h3 className="font-semibold text-lg flex items-center gap-2 mb-4 text-fg">
                 <Sparkles className="w-5 h-5 text-yellow-500" />
                 Diagnostic Report
               </h3>
@@ -130,8 +130,8 @@ export function TiptapDemoSection() {
                 <div className="space-y-3 max-h-[400px] overflow-y-auto pr-2 custom-scrollbar">
                   {threats.map((threat) => (
                     <div
-                      key={`${threat.ruleId}-${threat.loc.index}`}
-                      className="p-3 bg-black/40 border border-red-500/20 rounded-lg text-xs"
+                      key={`${threat.ruleId}-${threat.range.start.index}`}
+                      className="p-3 bg-bg/40 border border-red-500/20 rounded-lg text-xs"
                     >
                       <div className="flex justify-between items-start mb-1">
                         <span className="font-mono text-red-400 font-bold uppercase">
@@ -145,7 +145,7 @@ export function TiptapDemoSection() {
                         {threat.message}
                       </p>
                       {threat.offendingText && (
-                        <div className="bg-red-500/5 p-1.5 rounded font-mono text-white/80 break-all border border-red-500/10">
+                        <div className="bg-red-500/5 p-1.5 rounded font-mono text-fg/80 break-all border border-red-500/10">
                           {threat.offendingText}
                         </div>
                       )}

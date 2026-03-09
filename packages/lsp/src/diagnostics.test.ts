@@ -13,10 +13,9 @@ const createThreat = (severity: Severity): ThreatReport => ({
   severity,
   message: "Test message",
   offendingText: "bad",
-  loc: {
-    line: 1,
-    column: 1,
-    index: 0,
+  range: {
+    start: { line: 1, column: 1, index: 0 },
+    end: { line: 1, column: 4, index: 3 },
   },
   referenceUrl: "https://example.com/rule",
 });

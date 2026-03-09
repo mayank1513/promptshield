@@ -1,4 +1,8 @@
-import type { ScanContext, ThreatReport, ThreatReportWithRange } from "./types";
+import type {
+  ScanContext,
+  ThreatReport,
+  ThreatReportWithoutLocation,
+} from "./types";
 
 /**
  * Computes line start offsets for a string.
@@ -121,11 +125,11 @@ export const getLocForIndex = (
  * // }
  * ```
  */
-export const enrichWithRange = (
-  threats: ThreatReport[],
+export const enrichWithLocation = (
+  threats: ThreatReportWithoutLocation[],
   text: string,
   context: Omit<ScanContext, "lineOffsets"> = {},
-): ThreatReportWithRange[] => {
+): ThreatReport[] => {
   const lineOffsets = getLineOffsets(text);
   const { baseLine = 1, baseCol = 1 } = context;
   const ctx: Required<ScanContext> = {

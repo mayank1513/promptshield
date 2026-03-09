@@ -26,7 +26,7 @@ const mocks = vi.hoisted(() => {
 vi.mock("vscode", () => ({
   ExtensionContext: vi.fn(),
   workspace: {
-    createFileSystemWatcher: vi.fn(),
+    createFileSystemWatcher: vi.fn(() => ({ dispose: vi.fn() })),
     openTextDocument: vi.fn(),
     applyEdit: vi.fn(),
   },
@@ -219,7 +219,10 @@ describe("VSCode Extension", () => {
     const threat = {
       severity: "CRITICAL",
       category: "Invisible",
-      loc: { line: 1, column: 1, index: 0 },
+      range: {
+        start: { line: 1, column: 1, index: 0 },
+        end: { line: 1, column: 1, index: 0 },
+      },
       message: "Test threat",
     };
 

@@ -1,5 +1,4 @@
 import { scan } from "@promptshield/core";
-import { filterThreats } from "@promptshield/ignore";
 import type { Editor } from "@tiptap/core";
 import type { Node as ProseMirrorNode } from "@tiptap/pm/model";
 import { Plugin, PluginKey } from "@tiptap/pm/state";
@@ -22,11 +21,7 @@ export const PromptShieldPlugin = (
 
     // 1. Scan text using @promptshield/core
     const scanResult = scan(text, options);
-
-    // 2. Filter via @promptshield/ignore
-    const { threats } = filterThreats(text, scanResult.threats, {
-      noInlineIgnore: options.noInlineIgnore,
-    });
+    const threats = scanResult.threats;
 
     // 3. Update Storage & Emit Events
     const storage = editor.storage["promptshield"];
@@ -41,15 +36,16 @@ export const PromptShieldPlugin = (
     const decorations: Decoration[] = [];
 
     for (const threat of threats) {
-      if (threat.loc.index < 0 || !threat.offendingText) continue;
+      if (threat.range.start.index < 0 || !threat.offendingText) continue;
 
-      const pmStart = mapTextIndexToPmPos(threat.loc.index, mapping);
+      const pmStart = mapTextIndexToPmPos(threat.range.start.index, mapping);
       if (pmStart === null) continue;
 
       const pmEnd = pmStart + threat.offendingText.length;
 
       const severityClass = `ps-severity-${threat.severity.toLowerCase()}`;
 
+      // Inline decoration for the highlight
       decorations.push(
         Decoration.inline(
           pmStart,

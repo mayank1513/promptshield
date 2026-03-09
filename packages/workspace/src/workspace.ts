@@ -235,7 +235,7 @@ export const scanFile = async (
     cache?.set(relPath, filtered, fileCount);
   } else {
     threats = [...filtered.threats, ...filtered.ignoredThreats].toSorted(
-      (a, b) => a.loc.index - b.loc.index,
+      (a, b) => a.range.start.index - b.range.start.index,
     );
   }
 
@@ -273,10 +273,12 @@ export const scanFile = async (
     if (text !== fileContent && write) {
       await atomicWrite(join(root, relPath), text);
 
-      const fixedIds = new Set(fixed.map((t) => `${t.loc.index}-${t.ruleId}`));
+      const fixedIds = new Set(
+        fixed.map((t) => `${t.range.start.index}-${t.ruleId}`),
+      );
 
       filtered.threats = filtered.threats.filter(
-        (t) => !fixedIds.has(`${t.loc.index}-${t.ruleId}`),
+        (t) => !fixedIds.has(`${t.range.start.index}-${t.ruleId}`),
       );
 
       cache?.set(relPath, filtered);
@@ -609,15 +611,34 @@ export const generateWorkspaceReport = async (
   for (const ft of allThreats) {
     const fileUri = pathToFileURL(join(rootPath, ft.uri)).toString();
 
+    let critCount = 0;
+    let highCount = 0;
+    let medCount = 0;
+    let lowCount = 0;
+
+    for (const t of ft.threats) {
+      if (t.severity === "CRITICAL") critCount++;
+      else if (t.severity === "HIGH") highCount++;
+      else if (t.severity === "MEDIUM") medCount++;
+      else lowCount++;
+    }
+
+    const summaryParts: string[] = [];
+    if (critCount > 0) summaryParts.push(`${critCount} Critical`);
+    if (highCount > 0) summaryParts.push(`${highCount} High`);
+    if (medCount > 0) summaryParts.push(`${medCount} Medium`);
+    if (lowCount > 0) summaryParts.push(`${lowCount} Low`);
+
     md += `## 📄 [${ft.uri}](${fileUri})\n\n`;
+    md += `> ${summaryParts.join(", ")} severity threats.\n\n`;
 
     const threatsByLine = new Map<number, ThreatReport[]>();
 
     for (const threat of ft.threats) {
-      if (!threatsByLine.has(threat.loc.line)) {
-        threatsByLine.set(threat.loc.line, []);
+      if (!threatsByLine.has(threat.range.start.line)) {
+        threatsByLine.set(threat.range.start.line, []);
       }
-      threatsByLine.get(threat.loc.line)?.push(threat);
+      threatsByLine.get(threat.range.start.line)?.push(threat);
     }
 
     for (const [line, threats] of threatsByLine) {

@@ -71,7 +71,8 @@ export function TryItOutSection() {
   }
 
   return (
-    <section className="py-24 bg-gradient-to-b from-[var(--color-ps-secondary)] to-orange-950/10 dark:to-orange-950/5 relative overflow-hidden">
+    // <section className="py-24 bg-gradient-to-b from-[var(--color-ps-secondary)] to-orange-950/10 dark:to-orange-950/5 relative overflow-hidden">
+    <section className="py-24 bg-[var(--color-ps-bg)] border-t border-[var(--color-ps-border)]">
       <div className="mx-auto max-w-4xl px-4 relative z-10">
         <div className="text-center mb-12">
           <h2 className="text-2xl font-bold mb-4 font-mono text-yellow-500 uppercase tracking-widest opacity-90">

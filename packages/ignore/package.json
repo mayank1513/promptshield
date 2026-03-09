@@ -43,6 +43,9 @@
     "tsup": "latest",
     "typescript": "latest"
   },
+  "dependencies": {
+    "@promptshield/core": "workspace:*"
+  },
   "forge": {
     "aliases": [
       "@ghostbuster/ignore"

@@ -91,7 +91,10 @@ describe("Workspace Scanning", () => {
               severity: "HIGH",
               message: "test",
               offendingText: "test",
-              loc: { line: 1, column: 1, index: 0 },
+              range: {
+                start: { line: 1, column: 1, index: 0 },
+                end: { line: 1, column: 5, index: 4 },
+              },
             },
           ],
         },
@@ -163,7 +166,25 @@ describe("Workspace Fixing", () => {
         progress: 100,
         name: "subdir/file2.js",
         path: "subdir/file2.js",
-        result: { threats: [{ severity: "HIGH" }], fixed: [{}] },
+        result: {
+          threats: [
+            {
+              severity: "HIGH",
+              range: {
+                start: { line: 1, column: 1, index: 0 },
+                end: { line: 1, column: 1, index: 0 },
+              },
+            },
+          ],
+          fixed: [
+            {
+              range: {
+                start: { line: 1, column: 1, index: 0 },
+                end: { line: 1, column: 1, index: 0 },
+              },
+            },
+          ],
+        },
       };
     }
     vi.mocked(scanAndFixWorkspaceCore).mockReturnValue(mockScanAndFix() as any);

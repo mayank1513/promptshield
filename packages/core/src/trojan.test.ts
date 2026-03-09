@@ -34,7 +34,7 @@ describe("scanTrojanSource", () => {
     }
     `;
     const threats = scanTrojanSource(text);
-    expect(threats.length).toBe(2);
+    expect(threats.length).toBe(4);
   });
 
   it("should respect stopOnFirstThreat option", () => {

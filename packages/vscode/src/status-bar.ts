@@ -59,7 +59,14 @@ export class PromptShieldStatusBar implements vscode.Disposable {
 
       // Filter for PromptShield diagnostics
       const psDiagnostics = diagnostics.filter((d) => d.source === SOURCE);
-      total += psDiagnostics.length;
+
+      for (const d of psDiagnostics) {
+        // Each diagnostic represents a group of threats stored in d.data
+        const group = (d as unknown as { data?: unknown[] }).data;
+        if (Array.isArray(group)) {
+          total += group.length;
+        }
+      }
     }
     this.workspaceThreatCount = total;
     this.updateStatus();

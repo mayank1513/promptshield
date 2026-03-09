@@ -207,6 +207,10 @@ importers:
         version: 5.9.3
 
   packages/ignore:
+    dependencies:
+      '@promptshield/core':
+        specifier: workspace:*
+        version: link:../core
     devDependencies:
       '@types/node':
         specifier: latest

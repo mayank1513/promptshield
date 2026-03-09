@@ -3,6 +3,7 @@ import { filterThreats } from "@promptshield/ignore";
 import {
   createConnection,
   DidChangeConfigurationNotification,
+  FileChangeType,
   type InitializeParams,
   type InitializeResult,
   type Position,
@@ -136,10 +137,35 @@ export const startLspServer = () => {
   };
 
   /**
-   * Trigger validation when document content changes.
+   * Clear diagnostics for deleted files.
+   */
+  connection.onDidChangeWatchedFiles((params) => {
+    for (const change of params.changes) {
+      if (change.type === FileChangeType.Deleted) {
+        connection.sendDiagnostics({ uri: change.uri, diagnostics: [] });
+      }
+    }
+  });
+
+  /**
+   * Trigger validation based on configured events.
    */
   documents.onDidChangeContent((change) => {
-    triggerValidation(change.document);
+    if (globalConfig.validateOnChange !== false) {
+      triggerValidation(change.document);
+    }
+  });
+
+  documents.onDidOpen((change) => {
+    if (globalConfig.validateOnOpen !== false) {
+      triggerValidation(change.document);
+    }
+  });
+
+  documents.onDidSave((change) => {
+    if (globalConfig.validateOnSave !== false) {
+      triggerValidation(change.document);
+    }
   });
 
   /**
@@ -177,8 +203,8 @@ export const startLspServer = () => {
      * This ensures we only provide actions for relevant threats.
      */
     const activeThreats = threats.filter((t) => {
-      const start = document.positionAt(t.loc.index);
-      const end = document.positionAt(t.loc.index + t.offendingText.length);
+      const start = document.positionAt(t.range.start.index);
+      const end = document.positionAt(t.range.end.index);
 
       // Check intersection with params.range
       // Overlap exists if (StartA <= EndB) AND (EndA >= StartB)
@@ -201,13 +227,20 @@ export const startLspServer = () => {
     );
     actions.push(...unusedIgnoreActions);
 
-    // Add single AI Fix action if any threats exist
-    if (threats.length > 0) {
-      const ignoreAction = getIgnoreAction(document, threats[0]);
-      if (ignoreAction) {
-        actions.push(ignoreAction);
+    // Add single AI Fix action if any active threats exist
+    if (activeThreats.length > 0) {
+      const seenIgnores = new Set<string>();
+
+      // Create ignore actions for each active threat under the cursor
+      for (const t of activeThreats) {
+        const ignoreResult = getIgnoreAction(document, t);
+        if (ignoreResult && !seenIgnores.has(ignoreResult.directive)) {
+          seenIgnores.add(ignoreResult.directive);
+          actions.push(ignoreResult.action);
+        }
       }
-      actions.push(getAiFixAction(document, threats));
+
+      actions.push(getAiFixAction(document, activeThreats));
     }
 
     return actions;

@@ -1,51 +1,93 @@
 ---
 title: Unicode Normalization Detector
-description: Detects text that changes under Unicode normalization (NFKC).
+description: Detects text that changes under Unicode NFKC normalization.
 ---
 
 # Unicode Normalization Detector
 
-The normalization detector identifies text that changes when converted to
-Unicode **NFKC (Normalization Form Compatibility Composition)**.
+The normalization detector identifies text that **changes when converted to Unicode NFKC (Normalization Form Compatibility Composition)**.
 
-This helps surface content where **what you see is not exactly what the
-system interprets**.
+Normalization can transform compatibility characters, presentation forms, or mathematical glyphs into canonical equivalents.
+
+When the normalized text differs from the original text, it can create situations where:
+
+> **What a human sees is not exactly what the system interprets.**
+
+PromptShield surfaces these differences so they can be reviewed.
 
 ---
 
 ## Why this matters
 
-Unicode allows multiple representations for visually similar characters.
+Unicode allows many visually similar or stylistic characters to represent the same logical text.
 
-Normalization can silently transform text such as:
+Examples include:
 
-- compatibility characters
-- presentation forms
+- compatibility glyphs
+- full-width characters
 - mathematical alphabets
-- full-width variants
+- ligatures
+- presentation forms
 
-This creates risk in:
+When these characters normalize to different text, it may affect:
 
-- prompts
+- prompt interpretation
 - system instructions
 - authentication text
 - code
-- policy validation logic
+- policy enforcement logic
 
-If normalized text differs from the original, the content may behave
-differently than expected.
+Normalization differences are not inherently malicious, but they can introduce **ambiguity and bypass opportunities**.
 
 ---
 
-## Detection rule
+## Detection rules
 
-### PSN001
+The detector emits two rules depending on the type of normalization change.
 
-> Normalization-sensitive text
+---
 
-Flags spans where characters change under **NFKC normalization**.
+### PSN001 
 
-Severity: **HIGH**
+> Compatibility normalization: Compatibility character normalizes to simple ASCII text.
+
+Severity: **LOW**
+
+These are typically benign stylistic or compatibility characters.
+
+Examples:
+
+```
+
+① → 1
+㎏ → kg
+ﬀ → ff
+
+```
+
+These characters are common in multilingual or typographic text but can still introduce subtle ambiguity.
+
+---
+
+## PSN002
+
+> Suspicious normalization change: Normalization produces non-trivial or multi-character transformations.
+
+Severity: **MEDIUM**
+
+These changes may be more likely to affect interpretation or introduce unexpected behavior.
+
+Examples:
+
+```
+
+ℌ → H
+Ⅸ → IX
+㍿ → 株式会社
+
+```
+
+Such transformations may alter token boundaries or expand into multiple characters.
 
 ---
 
@@ -71,18 +113,19 @@ Hello admin
 
 The character `ℌ` (black-letter capital H) normalizes to `H`.
 
-PromptShield reports the span as normalization-sensitive.
+PromptShield reports the span as **normalization-sensitive**.
 
 ---
 
 ## Detection model
 
-The detector:
+The detector performs a deterministic lexical scan:
 
-1. Normalizes text using `NFKC`
-2. Compares each character to its normalized form
-3. Groups adjacent differences into spans
-4. Emits one threat per span
+1. Normalize the text using **NFKC**
+2. Compare each character to its normalized representation
+3. Identify characters that change under normalization
+4. Group adjacent differences into spans
+5. Emit one threat per span
 
 Span semantics:
 
@@ -93,23 +136,41 @@ decodedPayload = normalized span
 
 ```
 
+Normalization may expand characters (example: `ﬀ → ff`), so the decoded payload is derived from the normalized span.
+
+```mermaid
+flowchart LR
+    A[Original Text] --> B[NFKC Normalization]
+    B --> C{Does text change?}
+
+    C -->|No| D[No issue detected]
+
+    C -->|Yes| E[Identify characters that changed]
+    E --> F[Group adjacent changes into spans]
+    F --> G[Emit normalization rule]
+
+    G --> H[PSN001<br/>Compatibility normalization<br/>LOW severity]
+    G --> I[PSN002<br/>Suspicious normalization change<br/>MEDIUM severity]
+```
+
 ---
 
 ## What this detector does NOT do
 
-It does not:
+The normalization detector intentionally does **not**:
 
 - block multilingual content
 - enforce normalization automatically
-- attempt semantic interpretation
+- perform semantic interpretation
+- classify text as malicious
 
-It only surfaces **differences that may affect interpretation**.
+It only reports **normalization differences that may affect interpretation**.
 
 ---
 
-## When to care
+## When this matters most
 
-Normalization differences are most important in:
+Normalization differences are most relevant in:
 
 - system prompts
 - tool instructions
@@ -118,7 +179,7 @@ Normalization differences are most important in:
 - identity strings
 - configuration files
 
-Less important in:
+They are generally less important in:
 
 - natural multilingual prose
 - UI copy
@@ -128,17 +189,19 @@ Less important in:
 
 ## Remediation
 
-Recommended fix:
+Recommended fixes:
 
-- Replace characters with their normalized equivalents
-- Avoid compatibility Unicode forms in prompts or code
+- Replace compatibility characters with their normalized equivalents
+- Avoid stylistic Unicode variants in prompts or code
+- Normalize text before performing security-sensitive comparisons
 
 ---
 
 ## References
 
-Unicode Standard Annex #15 — Unicode Normalization Forms
+Unicode Standard Annex #15 — Unicode Normalization Forms  
 https://unicode.org/reports/tr15/
 
-PromptShield rule reference
-https://promptshield.js.org/docs/detectors/normalization#PSN001
+PromptShield rule reference  
+https://promptshield.js.org/docs/detectors/normalization
+```

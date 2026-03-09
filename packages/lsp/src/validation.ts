@@ -41,6 +41,7 @@ export const validateDocument = async (
   }
 
   const { threats } = scan(text, { minSeverity });
+
   const result = filterThreats(text, threats, {
     noInlineIgnore,
   });
@@ -49,14 +50,15 @@ export const validateDocument = async (
   const threatDiagnostics = convertReportsToDiagnostics(result.threats);
 
   // Unused ignore diagnostics
-  const unusedIgnoreDiagnostics = result.unusedIgnores?.map((range) => ({
-    range: range.definedAt,
-    severity: DiagnosticSeverity.Warning,
-    tags: [DiagnosticTag.Unnecessary],
-    message: "Unused promptshield-ignore directive",
-    code: UNUSED_DIRECTIVE_CODE,
-    source: SOURCE,
-  }));
+  const unusedIgnoreDiagnostics =
+    result.unusedIgnores?.map((range) => ({
+      range: range.definedAt,
+      severity: DiagnosticSeverity.Warning,
+      tags: [DiagnosticTag.Unnecessary],
+      message: "Unused promptshield-ignore directive",
+      code: UNUSED_DIRECTIVE_CODE,
+      source: SOURCE,
+    })) || [];
 
   connection.sendDiagnostics({
     uri: document.uri,
