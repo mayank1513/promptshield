@@ -184,7 +184,7 @@ export interface ThreatReportWithoutLocation {
 /**
  * Threat report enriched with human-readable location information.
  *
- * `ThreatReportWithLocation` extends the base `ThreatReport` by replacing the
+ * `ThreatReport` extends the base `ThreatReportWithoutLocation` by replacing the
  * offset-based `range` with resolved line/column locations. This format is
  * intended for environments where diagnostics must be presented to humans,
  * such as:

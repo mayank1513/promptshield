@@ -8,4 +8,9 @@ Refactored the core scanning engine to use offset-based detection and centralize
 - Introduced `enrichWithLocation` utility for post-processing character offsets into human-readable locations.
 - Simplified `scan` entry point by removing manual line-splitting logic.
 - Updated `ThreatReport` to use a `range` object.
-- Added `ThreatReportWithLocation` for diagnostics-ready reports.
+  ```ts
+  range: {
+    start: { line, column, index }
+    end: { line, column, index }
+  }
+  ```

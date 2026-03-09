@@ -36,3 +36,8 @@ export interface ScanResult {
 ```
 
 `scan()` no longer returns the stats.
+
+This change affects any integrations relying on runtime performance metrics
+returned from `scan()`.
+
+Consumers should measure performance externally if needed.

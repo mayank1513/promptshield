@@ -4,7 +4,7 @@
 
 ⚠️ **Breaking change**
 
-This release updates the package to work with the new `ThreatReportWithLocation` format introduced in `@promptshield/core`.
+This release updates the package to work with the new `ThreatReport` format introduced in `@promptshield/core`.
 
 Previous versions of `@promptshield/core` exposed threat locations using `loc`.
 The new format exposes locations using `range.start` and `range.end`.
@@ -19,7 +19,6 @@ As a result, this version of `@promptshield/ignore` **is not compatible with old
 
 ### Technical details
 
-* `filterThreats` now operates on `ThreatReportWithLocation`.
 * Threat location data is read from `range.start` / `range.end`.
 * Suppression checks both `range.start.line` and `range.end.line`.
 * Threat sorting now uses `range.start.index`.
