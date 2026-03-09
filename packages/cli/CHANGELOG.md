@@ -1,5 +1,19 @@
 # @promptshield/cli
 
+## 1.0.0
+
+### Major Changes
+
+- [`519bf75`](https://github.com/promptshield-io/promptshield/commit/519bf750e3ade52bc954d4766bb1bd47704f9e1b) Thanks [@mayank1513](https://github.com/mayank1513)! - feat(@promptshield/cli): release v1.0.0 - Production ready
+
+  The CLI has reached maturity and is now officially production-ready. This major release signifies a stable API and robust performance for auditing AI prompts in development workflows and CI/CD pipelines.
+
+### Patch Changes
+
+- Updated dependencies [[`36c59e8`](https://github.com/promptshield-io/promptshield/commit/36c59e8a177ab763050017226c12a317d36fc32d), [`ac51eda`](https://github.com/promptshield-io/promptshield/commit/ac51eda96f796d5b175b17f997a675e0b1ea375e)]:
+  - @promptshield/sanitizer@1.0.0
+  - @promptshield/workspace@1.0.2
+
 ## 0.1.2
 
 ### Patch Changes

@@ -2,7 +2,7 @@
   "name": "@promptshield/tiptap",
   "author": "Mayank Kumar Chaudhari <https://mayankchaudhari.com>",
   "private": false,
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "Official Tiptap extension for PromptShield - Protect your editor from Prompt Injection and Trojan Source attacks in real-time.",
   "license": "MIT",
   "main": "./dist/index.js",

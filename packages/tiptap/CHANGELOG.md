@@ -1,5 +1,19 @@
 # @promptshield/tiptap
 
+## 0.0.2
+
+### Patch Changes
+
+- [`36c59e8`](https://github.com/promptshield-io/promptshield/commit/36c59e8a177ab763050017226c12a317d36fc32d) Thanks [@mayank1513](https://github.com/mayank1513)! - chore(@promptshield/tiptap): update package metadata and keywords
+
+- [`ac51eda`](https://github.com/promptshield-io/promptshield/commit/ac51eda96f796d5b175b17f997a675e0b1ea375e) Thanks [@mayank1513](https://github.com/mayank1513)! - - Upgrade to Tiptap v3 with backward compatibility for v2.
+  - Move Tiptap core dependencies to peerDependencies.
+  - Add `canFixThreat` logic to filter actions in the hover UI (homoglyphs and complex smuggling cases are hidden).
+  - Fix CodeQL warning in `@promptshield/sanitizer` regarding incomplete multi-character sanitization.
+  - Improve TypeScript ergonomics with module augmentation for storage and events.
+- Updated dependencies [[`36c59e8`](https://github.com/promptshield-io/promptshield/commit/36c59e8a177ab763050017226c12a317d36fc32d), [`ac51eda`](https://github.com/promptshield-io/promptshield/commit/ac51eda96f796d5b175b17f997a675e0b1ea375e)]:
+  - @promptshield/sanitizer@1.0.0
+
 ## 0.0.1
 
 ### Patch Changes
