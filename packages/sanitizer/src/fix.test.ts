@@ -8,6 +8,7 @@ const createThreat = (
   offendingText: string,
   index: number,
   readableLabel: string = "test",
+  decodedPayload?: string,
 ): ThreatReport => ({
   ruleId: "TEST001",
   category,
@@ -24,6 +25,7 @@ const createThreat = (
   offendingText,
   readableLabel,
   referenceUrl: "",
+  decodedPayload,
 });
 
 describe("applyFixes", () => {
@@ -98,6 +100,7 @@ describe("applyFixes", () => {
         "VGhpcyBpcyBiYWQ=",
         9,
         "[Base64]: This is bad",
+        "This is bad",
       );
 
       const result = applyFixes(text, [threat]);
